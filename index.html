@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMD Stencil 3D Generator (0.2–0.4 mm)</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --border: #2a2f3a;
+      --accent: #00d084;
+      --accent-hover: #00b572;
+      --text: #e6e9ef;
+      --muted: #8b949e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      display: flex; height: 100vh; overflow: hidden;
+    }
+    aside {
+      width: 360px; background: var(--panel); border-right: 1px solid var(--border);
+      padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
+    }
+    h1 { font-size: 16px; margin: 0; letter-spacing: 0.5px; color: var(--accent); text-transform: uppercase; }
+    h2 { font-size: 12px; margin: 0 0 8px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .card {
+      background: #12151b; border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+    }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; }
+    .row:last-child { margin-bottom: 0; }
+    label { color: var(--text); font-size: 12.5px; }
+    input[type="number"], select {
+      width: 105px; background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 5px; padding: 4px 6px; font-size: 13px;
+    }
+    input[type="file"] { width: 100%; font-size: 12px; color: var(--muted); }
+    input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    button {
+      background: #222733; color: var(--text); border: 1px solid var(--border);
+      border-radius: 6px; padding: 7px 10px; font-size: 12.5px; cursor: pointer; transition: 0.15s;
+    }
+    button:hover { border-color: var(--accent); }
+    button.active { background: rgba(0, 208, 132, 0.15); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+    button.primary {
+      background: var(--accent); color: #0b0e12; border: none; font-weight: 700; width: 100%; padding: 10px; font-size: 14px;
+    }
+    button.primary:hover { background: var(--accent-hover); }
+    #viewport { flex: 1; position: relative; }
+    #hud {
+      position: absolute; top: 12px; left: 12px; background: rgba(18, 21, 27, 0.88);
+      border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
+      font-size: 12px; line-height: 1.6; pointer-events: none;
+    }
+    #cam-controls {
+      position: absolute; bottom: 14px; right: 14px; display: flex; gap: 6px;
+    }
+    .warn { color: var(--warn); font-weight: 600; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <aside>
+    <h1>SMD Stencil 3D Generator</h1>
+
+    <div class="card">
+      <h2>1. Pliki Gerber (KiCad / EasyEDA)</h2>
+      <div style="margin-bottom:8px;">
+        <label>Warstwa pasty (F_Paste / B_Paste .gtp/.gbp/.gbr):</label>
+        <input type="file" id="pasteFile" accept=".gbr,.gtp,.gbp,.txt" />
+      </div>
+      <div style="margin-bottom:8px;">
+        <label>Obrys PCB (Edge_Cuts .gm1/.gko/.gbr — opcjonalnie):</label>
+        <input type="file" id="edgeFile" accept=".gbr,.gm1,.gko,.txt" />
+      </div>
+      <button id="btnDemo" style="width:100%;">Załaduj przykładową płytkę (Demo)</button>
+    </div>
+
+    <div class="card">
+      <h2>2. Preset dyszy</h2>
+      <div class="btn-group">
+        <button id="preset02" class="active">Dysza 0.2 mm</button>
+        <button id="preset04">Dysza 0.4 mm</button>
+        <button id="presetThin">Ultra-cienki 0.08</button>
+      </div>
+      <div class="hint">Dysza 0.2 mm obsługuje rastry 0.5 mm (QFN/TSSOP). Dysza 0.4 mm najlepiej działa od 0603 i SOIC.</div>
+    </div>
+
+    <div class="card">
+      <h2>3. Parametry stencila</h2>
+      <div class="row">
+        <label>Grubość blachy (mm)</label>
+        <input type="number" id="thickness" value="0.12" step="0.02" min="0.06" max="0.50" />
+      </div>
+      <div class="row">
+        <label>Korekta padów XY (mm)</label>
+        <input type="number" id="padComp" value="0.04" step="0.01" min="-0.25" max="0.25" />
+      </div>
+      <div class="row">
+        <label>Margines wokół PCB (mm)</label>
+        <input type="number" id="margin" value="10" step="1" min="2" max="40" />
+      </div>
+      <div class="row">
+        <label>Odbicie lustrzane X (Mirror)</label>
+        <input type="checkbox" id="mirrorX" />
+      </div>
+      <div class="row">
+        <label>Odbicie lustrzane Y</label>
+        <input type="checkbox" id="mirrorY" />
+      </div>
+      <div class="row">
+        <label>Obrót</label>
+        <select id="rotation">
+          <option value="0">0°</option>
+          <option value="90">90°</option>
+          <option value="180">180°</option>
+          <option value="270">270°</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4. Ramka pozycjonująca PCB (Jig)</h2>
+      <div class="row">
+        <label>Typ ramki</label>
+        <select id="ledgeType">
+          <option value="lshape">Narożnikowa (L - 2 boki)</option>
+          <option value="full">Pełna (4 boki)</option>
+          <option value="none">Brak (płaski arkusz)</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Wysokość ramki (mm)</label>
+        <input type="number" id="ledgeHeight" value="1.2" step="0.1" min="0.4" max="3.0" />
+      </div>
+      <div class="row">
+        <label>Luz na PCB (Clearance mm)</label>
+        <input type="number" id="pcbClearance" value="0.20" step="0.05" min="0" max="1.0" />
+      </div>
+      <div class="hint">Ramka rośnie w górę (+Z). Drukujesz gładką stroną do stołu, a potem odwracasz na PCB — przy F.Paste z ramką zazwyczaj zaznacz <b>Mirror X</b>.</div>
+    </div>
+
+    <button class="primary" id="btnExport">Pobierz STL</button>
+    <button id="btnExportPack" style="width:100%;">Pobierz pakiet testowy (3 korekty XY)</button>
+  </aside>
+
+  <main id="viewport">
+    <div id="hud">Wczytaj plik Gerber lub kliknij „Załaduj przykładową płytkę”.</div>
+    <div id="cam-controls">
+      <button id="camTop">Góra (Z+)</button>
+      <button id="camBottom">Spód (Z-)</button>
+      <button id="camIso">3D Iso</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // --- THREE.JS SCENA ---
+    const container = document.getElementById('viewport');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f1115);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 2000);
+    camera.position.set(0, -60, 70);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.3);
+    dirLight1.position.set(50, -50, 100);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x88bbff, 0.6);
+    dirLight2.position.set(-50, 50, -60);
+    scene.add(dirLight2);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+    const grid = new THREE.GridHelper(200, 20, 0x2a2f3a, 0x1b1f27);
+    grid.rotation.x = Math.PI / 2;
+    scene.add(grid);
+
+    let stencilGroup = new THREE.Group();
+    scene.add(stencilGroup);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // --- STAN APLIKACJI ---
+    let parsedPads = [];
+    let parsedBoardBounds = null;
+    let currentNozzle = 0.2;
+
+    // --- PARSER GERBER RS-274X (KiCad / EasyEDA) ---
+    function parseGerber(text) {
+      let unitScale = 1.0; // 1 = mm, 25.4 = inch
+      let decX = 6, decY = 6;
+      const apertures = {};
+      const pads = [];
+      const points = [];
+
+      let curX = 0, curY = 0;
+      let curAperture = null;
+      let inRegion = false;
+      let regionPts = [];
+
+      const parseCoord = (str, dec) => {
+        if (!str) return null;
+        const sign = str.startsWith('-') ? -1 : 1;
+        const digits = str.replace(/^[+-]/, '');
+        return sign * (parseInt(digits, 10) / Math.pow(10, dec)) * unitScale;
+      };
+
+      const lines = text.replace(/\r/g, '').split(/\n/);
+      for (let raw of lines) {
+        const line = raw.trim();
+        if (!line) continue;
+
+        if (line.includes('%MOIN')) unitScale = 25.4;
+        if (line.includes('%MOMM')) unitScale = 1.0;
+
+        const fsMatch = line.match(/%FS[LT][AI]X(\d)(\d)Y(\d)(\d)/);
+        if (fsMatch) {
+          decX = parseInt(fsMatch[2], 10);
+          decY = parseInt(fsMatch[4], 10);
+        }
+
+        // Standardowe apertury: C, R, O, RoundRect (KiCad)
+        const adMatch = line.match(/%ADD(\d+)([A-Za-z0-9_]+),([^*]+)\*%/);
+        if (adMatch) {
+          const code = 'D' + adMatch[1];
+          const type = adMatch[2];
+          const params = adMatch[3].split('X').map(Number);
+
+          if (type === 'C') {
+            apertures[code] = { type: 'C', d: params[0] * unitScale };
+          } else if (type === 'R') {
+            apertures[code] = { type: 'R', w: params[0] * unitScale, h: (params[1] ?? params[0]) * unitScale };
+          } else if (type === 'O') {
+            apertures[code] = { type: 'O', w: params[0] * unitScale, h: (params[1] ?? params[0]) * unitScale };
+          } else if (type.startsWith('RoundRect') && params.length >= 9) {
+            // KiCad RoundRect: r, x1, y1, x2, y2, x3, y3, x4, y4
+            const r = params[0] * unitScale;
+            const corners = [
+              { x: params[1] * unitScale, y: params[2] * unitScale },
+              { x: params[3] * unitScale, y: params[4] * unitScale },
+              { x: params[5] * unitScale, y: params[6] * unitScale },
+              { x: params[7] * unitScale, y: params[8] * unitScale }
+            ];
+            apertures[code] = { type: 'RoundRect', r, corners };
+          } else {
+            // Fallback dla nietypowych makr
+            const size = (params[0] || 0.5) * unitScale;
+            apertures[code] = { type: 'R', w: size, h: size };
+          }
+          continue;
+        }
+
+        if (line.startsWith('%')) continue;
+
+        // Podział na komendy zakończone *
+        const cmds = line.split('*').filter(Boolean);
+        for (const cmd of cmds) {
+          if (cmd === 'G36') { inRegion = true; regionPts = []; continue; }
+          if (cmd === 'G37') {
+            inRegion = false;
+            if (regionPts.length >= 3) {
+              pads.push({ type: 'POLY', pts: regionPts });
+            }
+            regionPts = [];
+            continue;
+          }
+
+          const apSel = cmd.match(/^(?:G54)?(D\d+)$/);
+          if (apSel && parseInt(apSel[1].slice(1), 10) >= 10) {
+            curAperture = apertures[apSel[1]] || null;
+            continue;
+          }
+
+          const xMatch = cmd.match(/X([+-]?\d+)/);
+          const yMatch = cmd.match(/Y([+-]?\d+)/);
+          const dMatch = cmd.match(/D0([123])/);
+
+          if (xMatch) curX = parseCoord(xMatch[1], decX);
+          if (yMatch) curY = parseCoord(yMatch[1], decY);
+
+          if (xMatch || yMatch) points.push({ x: curX, y: curY });
+
+          const dOp = dMatch ? dMatch[1] : null;
+          if (inRegion) {
+            if (dOp === '2') regionPts = [{ x: curX, y: curY }];
+            else if (dOp === '1' || xMatch || yMatch) regionPts.push({ x: curX, y: curY });
+          } else if (dOp === '3' && curAperture) {
+            pads.push({ ...curAperture, x: curX, y: curY });
+          }
+        }
+      }
+
+      let bounds = null;
+      if (points.length > 0) {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const p of points) {
+          if (p.x < minX) minX = p.x;
+          if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y;
+          if (p.y > maxY) maxY = p.y;
+        }
+        bounds = { minX, maxX, minY, maxY };
+      }
+
+      return { pads, bounds };
+    }
+
+    // --- KONWERSJA PADA NA ŚCIEŻKĘ THREE.JS ---
+    function padToPath(pad, comp, cx, cy, mirrorX, mirrorY, rotRad) {
+      const transform = (x, y) => {
+        let dx = x - cx;
+        let dy = y - cy;
+        if (mirrorX) dx = -dx;
+        if (mirrorY) dy = -dy;
+        const rx = dx * Math.cos(rotRad) - dy * Math.sin(rotRad);
+        const ry = dx * Math.sin(rotRad) + dy * Math.cos(rotRad);
+        return [rx, ry];
+      };
+
+      const pts = [];
+      let minDim = Infinity;
+
+      if (pad.type === 'C') {
+        const r = Math.max(0.05, pad.d / 2 + comp);
+        minDim = r * 2;
+        const segs = 16;
+        for (let i = 0; i < segs; i++) {
+          const a = (i / segs) * Math.PI * 2;
+          pts.push(transform(pad.x + Math.cos(a) * r, pad.y + Math.sin(a) * r));
+        }
+      } else if (pad.type === 'R' || pad.type === 'O') {
+        const hw = Math.max(0.05, pad.w / 2 + comp);
+        const hh = Math.max(0.05, pad.h / 2 + comp);
+        minDim = Math.min(hw, hh) * 2;
+        pts.push(
+          transform(pad.x - hw, pad.y - hh),
+          transform(pad.x + hw, pad.y - hh),
+          transform(pad.x + hw, pad.y + hh),
+          transform(pad.x - hw, pad.y + hh)
+        );
+      } else if (pad.type === 'RoundRect') {
+        // Wyznaczamy zorientowany prostokąt z 4 narożników + r + comp
+        const r = Math.max(0.02, pad.r + comp);
+        const c = pad.corners;
+        // Środek
+        const mx = (c[0].x + c[1].x + c[2].x + c[3].x) / 4;
+        const my = (c[0].y + c[1].y + c[2].y + c[3].y) / 4;
+        for (let i = 0; i < 4; i++) {
+          const vx = c[i].x - mx;
+          const vy = c[i].y - my;
+          const len = Math.hypot(vx, vy) || 1;
+          const ex = pad.x + c[i].x + (vx / len) * r * Math.SQRT2;
+          const ey = pad.y + c[i].y + (vy / len) * r * Math.SQRT2;
+          pts.push(transform(ex, ey));
+        }
+        const side1 = Math.hypot(c[1].x - c[0].x, c[1].y - c[0].y) + 2 * r;
+        const side2 = Math.hypot(c[2].x - c[1].x, c[2].y - c[1].y) + 2 * r;
+        minDim = Math.min(side1, side2);
+      } else if (pad.type === 'POLY') {
+        let sx = 0, sy = 0;
+        for (const p of pad.pts) { sx += p.x; sy += p.y; }
+        const mx = sx / pad.pts.length, my = sy / pad.pts.length;
+        for (const p of pad.pts) {
+          const vx = p.x - mx, vy = p.y - my;
+          const len = Math.hypot(vx, vy) || 1;
+          pts.push(transform(p.x + (vx / len) * comp, p.y + (vy / len) * comp));
+        }
+        minDim = 0.5;
+      }
+
+      if (pts.length < 3) return null;
+      const path = new THREE.Path();
+      path.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) path.lineTo(pts[i][0], pts[i][1]);
+      path.closePath();
+      return { path, minDim };
+    }
+
+    // --- BUDOWA MODELU 3D ---
+    function rebuildStencil() {
+      while (stencilGroup.children.length > 0) {
+        const obj = stencilGroup.children.pop();
+        obj.geometry?.dispose();
+        obj.material?.dispose();
+      }
+      if (parsedPads.length === 0) return;
+
+      const thickness = parseFloat(document.getElementById('thickness').value) || 0.12;
+      const padComp = parseFloat(document.getElementById('padComp').value) || 0;
+      const margin = parseFloat(document.getElementById('margin').value) || 10;
+      const mirrorX = document.getElementById('mirrorX').checked;
+      const mirrorY = document.getElementById('mirrorY').checked;
+      const rotDeg = parseInt(document.getElementById('rotation').value, 10) || 0;
+      const rotRad = (rotDeg * Math.PI) / 180;
+      const ledgeType = document.getElementById('ledgeType').value;
+      const ledgeHeight = parseFloat(document.getElementById('ledgeHeight').value) || 1.2;
+      const clearance = parseFloat(document.getElementById('pcbClearance').value) || 0.2;
+
+      // Wyznaczanie granic PCB
+      let b = parsedBoardBounds;
+      if (!b) {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const p of parsedPads) {
+          const px = p.x ?? p.pts[0].x;
+          const py = p.y ?? p.pts[0].y;
+          if (px < minX) minX = px; if (px > maxX) maxX = px;
+          if (py < minY) minY = py; if (py > maxY) maxY = py;
+        }
+        b = { minX: minX - 3, maxX: maxX + 3, minY: minY - 3, maxY: maxY + 3 };
+      }
+
+      const cx = (b.minX + b.maxX) / 2;
+      const cy = (b.minY + b.maxY) / 2;
+      let pcbW = b.maxX - b.minX;
+      let pcbH = b.maxY - b.minY;
+      if (rotDeg === 90 || rotDeg === 270) [pcbW, pcbH] = [pcbH, pcbW];
+
+      const outerW = pcbW + margin * 2;
+      const outerH = pcbH + margin * 2;
+
+      // 1. Główna blacha stencila z otworami
+      const plateShape = new THREE.Shape();
+      plateShape.moveTo(-outerW / 2, -outerH / 2);
+      plateShape.lineTo(outerW / 2, -outerH / 2);
+      plateShape.lineTo(outerW / 2, outerH / 2);
+      plateShape.lineTo(-outerW / 2, outerH / 2);
+      plateShape.closePath();
+
+      let smallestPad = Infinity;
+      for (const pad of parsedPads) {
+        const res = padToPath(pad, padComp, cx, cy, mirrorX, mirrorY, rotRad);
+        if (res) {
+          plateShape.holes.push(res.path);
+          if (res.minDim < smallestPad) smallestPad = res.minDim;
+        }
+      }
+
+      const plateGeo = new THREE.ExtrudeGeometry(plateShape, {
+        depth: thickness, bevelEnabled: false, curveSegments: 12
+      });
+      const plateMat = new THREE.MeshStandardMaterial({
+        color: 0x00d084, roughness: 0.45, metalness: 0.15
+      });
+      const plateMesh = new THREE.Mesh(plateGeo, plateMat);
+      stencilGroup.add(plateMesh);
+
+      // 2. Ramka pozycjonująca (Jig)
+      if (ledgeType !== 'none') {
+        const cutW = pcbW + clearance * 2;
+        const cutH = pcbH + clearance * 2;
+        const ledgeMat = new THREE.MeshStandardMaterial({
+          color: 0x3b82f6, roughness: 0.5, metalness: 0.1
+        });
+
+        const ledgeShape = new THREE.Shape();
+        if (ledgeType === 'full') {
+          ledgeShape.moveTo(-outerW / 2, -outerH / 2);
+          ledgeShape.lineTo(outerW / 2, -outerH / 2);
+          ledgeShape.lineTo(outerW / 2, outerH / 2);
+          ledgeShape.lineTo(-outerW / 2, outerH / 2);
+          ledgeShape.closePath();
+
+          const hole = new THREE.Path();
+          hole.moveTo(-cutW / 2, -cutH / 2);
+          hole.lineTo(cutW / 2, -cutH / 2);
+          hole.lineTo(cutW / 2, cutH / 2);
+          hole.lineTo(-cutW / 2, cutH / 2);
+          hole.closePath();
+          ledgeShape.holes.push(hole);
+        } else {
+          // L-shape (dolna i lewa krawędź)
+          ledgeShape.moveTo(-outerW / 2, -outerH / 2);
+          ledgeShape.lineTo(outerW / 2, -outerH / 2);
+          ledgeShape.lineTo(outerW / 2, -cutH / 2);
+          ledgeShape.lineTo(-cutW / 2, -cutH / 2);
+          ledgeShape.lineTo(-cutW / 2, outerH / 2);
+          ledgeShape.lineTo(-outerW / 2, outerH / 2);
+          ledgeShape.closePath();
+        }
+
+        const ledgeGeo = new THREE.ExtrudeGeometry(ledgeShape, {
+          depth: ledgeHeight, bevelEnabled: false
+        });
+        ledgeGeo.translate(0, 0, thickness);
+        stencilGroup.add(new THREE.Mesh(ledgeGeo, ledgeMat));
+      }
+
+      // Aktualizacja HUD
+      const warnText = smallestPad < currentNozzle * 1.1
+        ? `<div class="warn">⚠ Najmniejszy otwór (${smallestPad.toFixed(2)} mm) jest na granicy dla dyszy ${currentNozzle} mm!</div>`
+        : '';
+
+      document.getElementById('hud').innerHTML = `
+        <div><b>Pady:</b> ${parsedPads.length} | <b>Najmniejszy wymiar:</b> ${smallestPad.toFixed(2)} mm</div>
+        <div><b>PCB:</b> ${pcbW.toFixed(1)} × ${pcbH.toFixed(1)} mm | <b>Stencil:</b> ${outerW.toFixed(1)} × ${outerH.toFixed(1)} mm</div>
+        <div><b>Grubość:</b> ${thickness.toFixed(2)} mm | <b>Korekta XY:</b> ${padComp >= 0 ? '+' : ''}${padComp.toFixed(2)} mm</div>
+        ${warnText}
+      `;
+    }
+
+    // --- EKSPORTER BINARNEGO STL ---
+    function exportGroupToBinarySTL(group) {
+      group.updateMatrixWorld(true);
+      const triangles = [];
+      const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
+      const cb = new THREE.Vector3(), ab = new THREE.Vector3();
+
+      group.traverse((obj) => {
+        if (!obj.isMesh) return;
+        const geo = obj.geometry;
+        const pos = geo.attributes.position;
+        const idx = geo.index;
+        const mat = obj.matrixWorld;
+
+        const addTri = (i1, i2, i3) => {
+          vA.fromBufferAttribute(pos, i1).applyMatrix4(mat);
+          vB.fromBufferAttribute(pos, i2).applyMatrix4(mat);
+          vC.fromBufferAttribute(pos, i3).applyMatrix4(mat);
+          cb.subVectors(vC, vB);
+          ab.subVectors(vA, vB);
+          cb.cross(ab).normalize();
+          triangles.push([cb.x, cb.y, cb.z, vA.x, vA.y, vA.z, vB.x, vB.y, vB.z, vC.x, vC.y, vC.z]);
+        };
+
+        if (idx) {
+          for (let i = 0; i < idx.count; i += 3) addTri(idx.getX(i), idx.getX(i + 1), idx.getX(i + 2));
+        } else {
+          for (let i = 0; i < pos.count; i += 3) addTri(i, i + 1, i + 2);
+        }
+      });
+
+      const buffer = new ArrayBuffer(84 + triangles.length * 50);
+      const view = new DataView(buffer);
+      view.setUint32(80, triangles.length, true);
+      let offset = 84;
+      for (const t of triangles) {
+        for (let i = 0; i < 12; i++) {
+          view.setFloat32(offset, t[i], true);
+          offset += 4;
+        }
+        view.setUint16(offset, 0, true);
+        offset += 2;
+      }
+      return new Blob([buffer], { type: 'application/octet-stream' });
+    }
+
+    function downloadSTL(filename) {
+      if (parsedPads.length === 0) return alert('Najpierw wczytaj plik Gerber lub Demo.');
+      const blob = exportGroupToBinarySTL(stencilGroup);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // --- ZDARZENIA UI ---
+    document.getElementById('pasteFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const res = parseGerber(await file.text());
+      parsedPads = res.pads;
+      rebuildStencil();
+    });
+
+    document.getElementById('edgeFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const res = parseGerber(await file.text());
+      parsedBoardBounds = res.bounds;
+      rebuildStencil();
+    });
+
+    document.getElementById('btnDemo').addEventListener('click', () => {
+      // Przykładowe PCB 40x25 mm z padami 0603, SOIC-8 i QFN
+      parsedBoardBounds = { minX: 0, maxX: 40, minY: 0, maxY: 25 };
+      parsedPads = [
+        // 0603 rezystory
+        { type: 'R', x: 8, y: 18, w: 0.9, h: 0.95 }, { type: 'R', x: 9.6, y: 18, w: 0.9, h: 0.95 },
+        { type: 'R', x: 8, y: 14, w: 0.9, h: 0.95 }, { type: 'R', x: 9.6, y: 14, w: 0.9, h: 0.95 },
+        // SOIC-8
+        ...[0, 1, 2, 3].flatMap(i => [
+          { type: 'R', x: 20 + i * 1.27, y: 16, w: 0.65, h: 1.5 },
+          { type: 'R', x: 20 + i * 1.27, y: 10.6, w: 0.65, h: 1.5 }
+        ]),
+        // Pad termiczny + okrągłe pady testowe
+        { type: 'R', x: 33, y: 13, w: 3.0, h: 3.0 },
+        { type: 'C', x: 8, y: 7, d: 1.4 }, { type: 'C', x: 12, y: 7, d: 1.4 }
+      ];
+      rebuildStencil();
+    });
+
+    const inputs = ['thickness', 'padComp', 'margin', 'mirrorX', 'mirrorY', 'rotation', 'ledgeType', 'ledgeHeight', 'pcbClearance'];
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', rebuildStencil));
+
+    const setPreset = (btnId, nozzle, thick, comp, margin) => {
+      document.querySelectorAll('#preset02, #preset04, #presetThin').forEach(b => b.classList.remove('active'));
+      document.getElementById(btnId).classList.add('active');
+      currentNozzle = nozzle;
+      document.getElementById('thickness').value = thick;
+      document.getElementById('padComp').value = comp;
+      document.getElementById('margin').value = margin;
+      rebuildStencil();
+    };
+
+    document.getElementById('preset02').onclick = () => setPreset('preset02', 0.2, 0.12, 0.04, 10);
+    document.getElementById('preset04').onclick = () => setPreset('preset04', 0.4, 0.20, 0.08, 12);
+    document.getElementById('presetThin').onclick = () => setPreset('presetThin', 0.2, 0.08, 0.03, 10);
+
+    document.getElementById('btnExport').onclick = () => {
+      const t = document.getElementById('thickness').value;
+      const c = document.getElementById('padComp').value;
+      const m = document.getElementById('mirrorX').checked ? '_mirrorX' : '';
+      downloadSTL(`stencil_T${t}_XY${c}${m}.stl`);
+    };
+
+    document.getElementById('btnExportPack').onclick = () => {
+      if (parsedPads.length === 0) return alert('Najpierw wczytaj plik Gerber lub Demo.');
+      const origComp = parseFloat(document.getElementById('padComp').value) || 0;
+      const t = document.getElementById('thickness').value;
+      const variants = [origComp - 0.04, origComp, origComp + 0.04];
+      variants.forEach((v, idx) => {
+        setTimeout(() => {
+          document.getElementById('padComp').value = v.toFixed(2);
+          rebuildStencil();
+          downloadSTL(`stencil_T${t}_XY${v.toFixed(2)}.stl`);
+          if (idx === variants.length - 1) {
+            document.getElementById('padComp').value = origComp.toFixed(2);
+            rebuildStencil();
+          }
+        }, idx * 450);
+      });
+    };
+
+    // Kamera
+    document.getElementById('camTop').onclick = () => { camera.position.set(0, 0, 85); controls.target.set(0, 0, 0); };
+    document.getElementById('camBottom').onclick = () => { camera.position.set(0, 0, -85); controls.target.set(0, 0, 0); };
+    document.getElementById('camIso').onclick = () => { camera.position.set(0, -60, 70); controls.target.set(0, 0, 0); };
+  </script>
+</body>
+</html>
