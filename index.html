@@ -24,7 +24,6 @@
       display: flex; width: 100vw; height: 100vh; overflow: hidden; user-select: none;
     }
 
-    /* Prosty, matowy panel boczny */
     aside {
       width: 348px; height: 100vh; background: var(--surface);
       border-right: 1px solid var(--border); display: flex; flex-direction: column;
@@ -38,7 +37,6 @@
     .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
     .header-actions { display: flex; align-items: center; gap: 6px; }
 
-    /* Zakładki 1-2-3 */
     .tabs {
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
       padding: 10px 14px; border-bottom: 1px solid var(--border); background: #13161c;
@@ -58,7 +56,6 @@
     .tab-pane { display: none; flex-direction: column; gap: 14px; }
     .tab-pane.active { display: flex; }
 
-    /* Sekcje i kontrolki */
     .section-title {
       font-size: 11px; font-weight: 600; color: var(--text-dim);
       text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px;
@@ -75,7 +72,6 @@
     .row.adv-only { display: none; }
     body.advanced .row.adv-only { display: flex; }
 
-    /* Dropzone */
     .drop-area {
       border: 1.5px dashed var(--border-hover); border-radius: 10px; padding: 18px 12px;
       text-align: center; cursor: pointer; transition: 0.15s; background: rgba(14,16,20,0.45);
@@ -90,7 +86,6 @@
       color: var(--accent); display: flex; justify-content: space-between; align-items: center;
     }
 
-    /* Suwak 5-stopniowy + okienko u góry */
     .param { margin-bottom: 12px; }
     .param:last-child { margin-bottom: 0; }
     .param-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
@@ -123,7 +118,6 @@
     .tick-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
     .tick-btn.active { color: var(--accent); background: var(--accent-soft); border-color: rgba(16,185,129,0.35); font-weight: 700; }
 
-    /* Przyciski i pola */
     select, input[type="number"].std-num {
       background: var(--canvas); color: var(--text); border: 1px solid var(--border);
       border-radius: 6px; padding: 5px 8px; font-size: 12px; outline: none;
@@ -131,7 +125,11 @@
     select:focus, input[type="number"]:focus { border-color: var(--accent); }
     input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
 
-    .btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .btn-row-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .array-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 9px; }
+    .array-cell { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--text-dim); }
+    .array-cell input { width: 100%; text-align: center; font-weight: 600; color: var(--accent); }
+
     button {
       background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
       border-radius: 7px; padding: 7px 10px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.15s;
@@ -147,7 +145,6 @@
     button.danger { color: #fca5a5; border-color: rgba(239,68,68,0.4); }
     button.danger:hover { background: rgba(239,68,68,0.12); }
 
-    /* Przełącznik Pro */
     .footer-bar {
       padding: 10px 16px; border-top: 1px solid var(--border); background: #13161c;
       display: flex; justify-content: space-between; align-items: center; font-size: 12px;
@@ -165,7 +162,6 @@
     input.switch-input:checked + .switch { background: var(--accent); }
     input.switch-input:checked + .switch::after { transform: translateX(14px); background: #05140e; }
 
-    /* Obszar 3D */
     main { flex: 1; position: relative; overflow: hidden; }
     #viewport { width: 100%; height: 100%; }
     #hud {
@@ -185,6 +181,11 @@
       background: rgba(22, 25, 32, 0.9); backdrop-filter: blur(10px);
       border: 1px solid var(--border); border-radius: 10px; padding: 5px;
       display: flex; gap: 4px;
+    }
+    #selection-box {
+      position: absolute; border: 1.5px solid var(--danger);
+      background: rgba(239, 68, 68, 0.16); pointer-events: none;
+      display: none; z-index: 20;
     }
     #drop-overlay {
       position: fixed; inset: 0; background: rgba(14, 16, 20, 0.9);
@@ -262,11 +263,29 @@
       <div class="tab-pane" id="pane-setup">
         <div class="box">
           <div class="section-title" data-i18n="secNozzle">Preset dyszy</div>
-          <div class="btn-row">
-            <button id="preset02" class="active">0.2 mm</button>
-            <button id="preset04">0.4 mm</button>
-            <button id="presetThin" data-i18n="preThin">0.08 Ultra</button>
+          <div class="btn-row-2">
+            <button id="preset02" class="active" data-i18n="pre02">Dysza 0.2 mm</button>
+            <button id="preset04" data-i18n="pre04">Dysza 0.4 mm</button>
           </div>
+        </div>
+
+        <div class="box">
+          <div class="section-title" data-i18n="secArray">Powielenie (wiele płytek naraz)</div>
+          <div class="array-grid">
+            <div class="array-cell">
+              <span data-i18n="lblArrX">W bok (X)</span>
+              <input type="number" class="std-num" id="arrayX" value="1" min="1" max="8" step="1" />
+            </div>
+            <div class="array-cell">
+              <span data-i18n="lblArrY">W dół (Y)</span>
+              <input type="number" class="std-num" id="arrayY" value="1" min="1" max="8" step="1" />
+            </div>
+          </div>
+          <div class="row">
+            <label data-i18n="lblArrGap">Odstęp między PCB (mm)</label>
+            <input type="number" class="std-num" id="arrayGap" value="3.0" min="0" max="20" step="0.5" style="width:78px;" />
+          </div>
+          <div class="hint" data-i18n="hintArray">Ustaw 0 mm dla panelu V-cut lub 3–5 mm dla osobnych płytek w osobnych gniazdach.</div>
         </div>
 
         <div class="box">
@@ -358,28 +377,45 @@
         </div>
 
         <div class="box">
-          <div class="section-title" data-i18n="secExclude">Wykluczanie padów (Klik w 3D)</div>
-          <div class="row">
-            <label data-i18n="lblExcludeMode">Klikaj otwory, aby zaślepić</label>
-            <input type="checkbox" id="excludeMode" checked />
+          <div class="section-title" data-i18n="secExclude">Wykluczanie padów (3D)</div>
+          <div class="btn-row-2" style="margin-bottom:8px;">
+            <button id="modeSingle" class="active" data-i18n="btnSingle">Klik pojedynczy</button>
+            <button id="modeBox" data-i18n="btnBox">Zaznacz ramką</button>
           </div>
           <div class="row">
             <span id="excludedCountText" style="font-size:12px;color:var(--text-dim);">Wykluczone: 0</span>
             <button id="btnResetExcluded" class="danger" style="padding:4px 8px;font-size:11px;" data-i18n="btnResetExcl">Przywróć</button>
           </div>
+          <div class="hint" data-i18n="hintBox">W trybie „Zaznacz ramką” (lub z przytrzymanym <b>Shift</b>) przeciągnij prostokąt po padach, aby wykluczyć wiele naraz.</div>
         </div>
       </div>
 
       <!-- ZAKŁADKA 3: EKSPORT -->
       <div class="tab-pane" id="pane-export">
         <div class="box">
-          <div class="section-title" data-i18n="secBambu">Gotowy plik dla Bambu Studio</div>
-          <button class="cta" id="btnExport3MF" data-i18n="btn3MF">Pobierz .3MF (Bambu Studio)</button>
-          <div class="hint" data-i18n="hint3MF">Zawiera wyśrodkowany model oraz ustawienia: Arachne, 100% wypełnienia, 0 mm kompensacji stopy słonia i dobraną wysokość warstwy.</div>
+          <div class="section-title" data-i18n="secFmt">Wybierz format eksportu</div>
+          <div class="btn-row-2" style="margin-bottom:8px;">
+            <button type="button" class="fmt-btn active" data-fmt="3mf">.3MF (Bambu)</button>
+            <button type="button" class="fmt-btn" data-fmt="stl">.STL</button>
+            <button type="button" class="fmt-btn" data-fmt="obj">.OBJ</button>
+            <button type="button" class="fmt-btn" data-fmt="zip">.ZIP</button>
+          </div>
+
+          <div id="zipOptions" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+            <div class="section-title" style="margin-bottom:6px;" data-i18n="secZipContent">Zawartość paczki .ZIP</div>
+            <div class="row"><label data-i18n="zipStl">Plik .STL</label><input type="checkbox" id="zipIncStl" checked /></div>
+            <div class="row"><label data-i18n="zip3mf">Plik .3MF (Bambu Studio)</label><input type="checkbox" id="zipInc3mf" checked /></div>
+            <div class="row"><label data-i18n="zipObj">Plik .OBJ</label><input type="checkbox" id="zipIncObj" /></div>
+            <div class="row"><label data-i18n="zipPack">3 warianty XY (-krok / 0 / +krok)</label><input type="checkbox" id="zipIncPack" checked /></div>
+            <div class="row"><label data-i18n="zipTxt">Plik ustawienia.txt</label><input type="checkbox" id="zipIncTxt" checked /></div>
+          </div>
+
+          <button class="cta" id="btnDownloadMain" style="margin-top:12px;">Pobierz .3MF</button>
+          <div class="hint" id="exportHint">Gotowy projekt pod Bambu Studio (Arachne, 100% wypełnienia, 0 mm stopy słonia).</div>
         </div>
 
         <div class="box adv-only">
-          <div class="section-title" data-i18n="secBambuAdv">Nadpisania .3MF (Tryb Pro)</div>
+          <div class="section-title" data-i18n="secBambuAdv">Nadpisania .3MF i pakietu (Pro)</div>
           <div class="row">
             <label data-i18n="lblWallGen">Generator ścian</label>
             <select id="bambuWallGen">
@@ -400,16 +436,8 @@
             <input type="number" class="std-num" id="bambuEleph" value="0" step="0.02" min="0" max="0.2" style="width:74px;" />
           </div>
           <div class="row">
-            <label data-i18n="lblPackStep">Krok pakietu testowego (±mm)</label>
+            <label data-i18n="lblPackStep">Krok wariantów XY (±mm)</label>
             <input type="number" class="std-num" id="packStep" value="0.04" step="0.01" min="0.01" max="0.15" style="width:74px;" />
-          </div>
-        </div>
-
-        <div class="box">
-          <div class="section-title" data-i18n="secStl">Uniwersalne pliki STL</div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <button class="secondary" id="btnExportSTL" data-i18n="btnSTL">Pobierz pojedynczy STL</button>
-            <button class="secondary" id="btnExportPack" data-i18n="btnPack">Pakiet testowy (3× STL z różnym XY)</button>
           </div>
         </div>
       </div>
@@ -427,6 +455,7 @@
 
   <main>
     <div id="viewport"></div>
+    <div id="selection-box"></div>
     <div id="hud">...</div>
     <div id="engine-pill">Three.js r187</div>
     <div id="cam-dock">
@@ -441,7 +470,6 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // --- KONFIGURACJA SUWAKÓW (5 OPCJI + PRECYZYJNY ZAKRES PRO) ---
     const SLIDERS = {
       thickness:    { presets: [0.08, 0.10, 0.12, 0.16, 0.20], min: 0.06, max: 0.50, step: 0.01 },
       padComp:      { presets: [-0.04, 0.00, 0.04, 0.08, 0.12], min: -0.30, max: 0.40, step: 0.005 },
@@ -452,6 +480,8 @@
     };
 
     let advancedMode = false;
+    let boxSelectMode = false;
+    let selectedFormat = '3mf';
     let lang = 'pl';
 
     const I18N = {
@@ -469,7 +499,13 @@
         optBedNone: 'Ukryj stół',
         hintFiles: 'Możesz wrzucić naraz warstwę pasty (F_Paste / B_Paste) i obrys płytki (Edge_Cuts).',
         secNozzle: 'Preset dyszy',
-        preThin: '0.08 Ultra',
+        pre02: 'Dysza 0.2 mm',
+        pre04: 'Dysza 0.4 mm',
+        secArray: 'Powielenie (wiele płytek naraz)',
+        lblArrX: 'W bok (X)',
+        lblArrY: 'W dół (Y)',
+        lblArrGap: 'Odstęp między PCB (mm)',
+        hintArray: 'Ustaw 0 mm dla panelu V-cut lub 3–5 mm dla osobnych płytek w osobnych gniazdach.',
         secDims: 'Wymiary szablonu',
         lblThick: 'Grubość szablonu',
         lblExpand: 'Poszerzenie padów XY',
@@ -488,21 +524,30 @@
         lblRot: 'Obrót',
         lblFrameH: 'Wysokość ramki',
         lblClear: 'Luz na PCB',
-        secExclude: 'Wykluczanie padów (Klik w 3D)',
-        lblExcludeMode: 'Klikaj otwory, aby zaślepić',
+        secExclude: 'Wykluczanie padów (3D)',
+        btnSingle: 'Klik pojedynczy',
+        btnBox: 'Zaznacz ramką',
         btnResetExcl: 'Przywróć',
-        secBambu: 'Gotowy plik dla Bambu Studio',
-        btn3MF: 'Pobierz .3MF (Bambu Studio)',
-        hint3MF: 'Zawiera wyśrodkowany model oraz ustawienia: Arachne, 100% wypełnienia, 0 mm kompensacji stopy słonia i dobraną wysokość warstwy.',
-        secBambuAdv: 'Nadpisania .3MF (Tryb Pro)',
+        hintBox: 'W trybie „Zaznacz ramką” (lub z przytrzymanym <b>Shift</b>) przeciągnij prostokąt po padach, aby wykluczyć wiele naraz.',
+        secFmt: 'Wybierz format eksportu',
+        secZipContent: 'Zawartość paczki .ZIP',
+        zipStl: 'Plik .STL',
+        zip3mf: 'Plik .3MF (Bambu Studio)',
+        zipObj: 'Plik .OBJ',
+        zipPack: '3 warianty XY (-krok / 0 / +krok)',
+        zipTxt: 'Plik ustawienia.txt',
+        dlPrefix: 'Pobierz',
+        hint3mf: 'Gotowy projekt pod Bambu Studio (Arachne, 100% wypełnienia, 0 mm stopy słonia).',
+        hintStl: 'Uniwersalny binarny plik .STL — działa w każdym slicerze.',
+        hintObj: 'Uniwersalny plik .OBJ — dobry do dalszej edycji w CAD / Blenderze.',
+        hintZip: 'Jedno archiwum .ZIP z wybranymi powyżej plikami.',
+        alertEmptyZip: 'Zaznacz przynajmniej jeden plik do wrzucenia w .ZIP.',
+        secBambuAdv: 'Nadpisania .3MF i pakietu (Pro)',
         lblWallGen: 'Generator ścian',
         lblLayerH: 'Wysokość warstwy (0 = auto)',
         lblFirstSpeed: 'Prędkość 1. warstwy (mm/s)',
         lblEleph: 'Stopa słonia (mm)',
-        lblPackStep: 'Krok pakietu testowego (±mm)',
-        secStl: 'Uniwersalne pliki STL',
-        btnSTL: 'Pobierz pojedynczy STL',
-        btnPack: 'Pakiet testowy (3× STL z różnym XY)',
+        lblPackStep: 'Krok wariantów XY (±mm)',
         lblAdvMode: 'Tryb zaawansowany',
         camTop: 'Góra',
         camBottom: 'Spód',
@@ -513,6 +558,7 @@
         hudMin: 'Min. otwór',
         hudStencil: 'Szablon',
         hudThick: 'Grubość',
+        hudPanel: 'Panel',
         hudWarnNozzle: 'Najmniejszy otwór na granicy dla dyszy',
         hudWarnBed: 'Szablon nie mieści się na wybranym stole!',
         exclCount: 'Wykluczone',
@@ -532,7 +578,13 @@
         optBedNone: 'Hide build plate',
         hintFiles: 'You can drop both the paste layer (F_Paste / B_Paste) and board outline (Edge_Cuts) at once.',
         secNozzle: 'Nozzle Preset',
-        preThin: '0.08 Ultra',
+        pre02: '0.2 mm Nozzle',
+        pre04: '0.4 mm Nozzle',
+        secArray: 'Panelization (Multiple PCBs)',
+        lblArrX: 'Columns (X)',
+        lblArrY: 'Rows (Y)',
+        lblArrGap: 'Gap between PCBs (mm)',
+        hintArray: 'Set 0 mm for a V-cut panel, or 3–5 mm for individual PCBs in separate pockets.',
         secDims: 'Stencil Dimensions',
         lblThick: 'Stencil thickness',
         lblExpand: 'Pad XY expand',
@@ -551,21 +603,30 @@
         lblRot: 'Rotation',
         lblFrameH: 'Frame height',
         lblClear: 'PCB clearance',
-        secExclude: 'Exclude Pads (Click in 3D)',
-        lblExcludeMode: 'Click apertures to close them',
+        secExclude: 'Exclude Pads (3D)',
+        btnSingle: 'Single Click',
+        btnBox: 'Box Select',
         btnResetExcl: 'Restore',
-        secBambu: 'Ready-to-Print for Bambu Studio',
-        btn3MF: 'Download .3MF (Bambu Studio)',
-        hint3MF: 'Includes centered model and settings: Arachne walls, 100% infill, 0 mm elephant foot compensation, and matched layer height.',
-        secBambuAdv: '.3MF Overrides (Pro Mode)',
+        hintBox: 'In "Box Select" mode (or hold <b>Shift</b>), drag a rectangle over pads to toggle multiple apertures at once.',
+        secFmt: 'Select Export Format',
+        secZipContent: '.ZIP Archive Contents',
+        zipStl: '.STL file',
+        zip3mf: '.3MF file (Bambu Studio)',
+        zipObj: '.OBJ file',
+        zipPack: '3 XY variants (-step / 0 / +step)',
+        zipTxt: 'settings.txt file',
+        dlPrefix: 'Download',
+        hint3mf: 'Ready-to-print Bambu Studio project (Arachne walls, 100% infill, 0 mm elephant foot).',
+        hintStl: 'Universal binary .STL file — works in any slicer.',
+        hintObj: 'Universal .OBJ mesh — great for further CAD / Blender editing.',
+        hintZip: 'Single .ZIP archive containing the files selected above.',
+        alertEmptyZip: 'Select at least one file to include in the .ZIP archive.',
+        secBambuAdv: '.3MF & Pack Overrides (Pro)',
         lblWallGen: 'Wall generator',
         lblLayerH: 'Layer height (0 = auto)',
         lblFirstSpeed: 'Initial layer speed (mm/s)',
         lblEleph: 'Elephant foot comp. (mm)',
-        lblPackStep: 'Test pack step (±mm)',
-        secStl: 'Standard STL Files',
-        btnSTL: 'Download Single STL',
-        btnPack: 'Test Pack (3× STL with XY offsets)',
+        lblPackStep: 'XY variants step (±mm)',
         lblAdvMode: 'Advanced mode',
         camTop: 'Top',
         camBottom: 'Bottom',
@@ -576,6 +637,7 @@
         hudMin: 'Min aperture',
         hudStencil: 'Stencil',
         hudThick: 'Thickness',
+        hudPanel: 'Panel',
         hudWarnNozzle: 'Smallest aperture near limit for nozzle',
         hudWarnBed: 'Stencil exceeds selected build plate!',
         exclCount: 'Excluded',
@@ -583,7 +645,6 @@
       }
     };
 
-    // --- ZAKŁADKI ---
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.onclick = () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -593,7 +654,6 @@
       };
     });
 
-    // --- SUWAKI ---
     function formatTick(val, key) {
       if (key === 'padComp' && val > 0) return '+' + val.toFixed(2);
       if (key === 'padScale') return val + '%';
@@ -663,6 +723,14 @@
       Object.keys(SLIDERS).forEach(syncSliderVisual);
     });
 
+    function updateExportUI() {
+      const dict = I18N[lang];
+      document.getElementById('zipOptions').style.display = selectedFormat === 'zip' ? 'block' : 'none';
+      document.getElementById('btnDownloadMain').textContent = `${dict.dlPrefix} .${selectedFormat.toUpperCase()}`;
+      const hintMap = { '3mf': dict.hint3mf, 'stl': dict.hintStl, 'obj': dict.hintObj, 'zip': dict.hintZip };
+      document.getElementById('exportHint').textContent = hintMap[selectedFormat];
+    }
+
     function applyLang() {
       const dict = I18N[lang];
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -672,6 +740,7 @@
       document.getElementById('langPL').classList.toggle('active', lang === 'pl');
       document.getElementById('langEN').classList.toggle('active', lang === 'en');
       updateExcludedLabel();
+      updateExportUI();
       rebuildStencil();
     }
     document.getElementById('langPL').onclick = () => { lang = 'pl'; applyLang(); };
@@ -742,7 +811,6 @@
       }
     }
 
-    // --- STÓŁ BAMBU LAB ---
     function getBedSize() {
       const val = document.getElementById('bedPreset').value;
       if (val === 'none') return null;
@@ -775,7 +843,7 @@
       bedGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(border), new THREE.LineBasicMaterial({ color: 0x10b981 })));
     }
 
-    // --- PARSER SVG (KiCad / EasyEDA) ---
+    // --- PARSER SVG ---
     function parseLengthMm(str) {
       if (!str) return null;
       const m = String(str).trim().match(/^([+-]?[\d.]+)\s*(mm|cm|in|px|pt)?$/i);
@@ -801,8 +869,7 @@
           if (cur.length >= 2) subpaths.push(cur);
           cur = [];
           const nx = num(), ny = num();
-          x = cmd === 'm' ? x + nx : nx;
-          y = cmd === 'm' ? y + ny : ny;
+          x = cmd === 'm' ? x + nx : nx; y = cmd === 'm' ? y + ny : ny;
           sx0 = x; sy0 = y;
           cur.push({ x: x * sx, y: -y * sy });
           cmd = cmd === 'm' ? 'l' : 'L';
@@ -823,9 +890,10 @@
           const ex = cmd === 'c' ? x + x3 : x3, ey = cmd === 'c' ? y + y3 : y3;
           for (let t = 0.25; t <= 1.001; t += 0.25) {
             const mt = 1 - t;
-            const px = mt*mt*mt*x + 3*mt*mt*t*cx1 + 3*mt*t*t*cx2 + t*t*t*ex;
-            const py = mt*mt*mt*y + 3*mt*mt*t*cy1 + 3*mt*t*t*cy2 + t*t*t*ey;
-            cur.push({ x: px * sx, y: -py * sy });
+            cur.push({
+              x: (mt*mt*mt*x + 3*mt*mt*t*cx1 + 3*mt*t*t*cx2 + t*t*t*ex) * sx,
+              y: -(mt*mt*mt*y + 3*mt*mt*t*cy1 + 3*mt*t*t*cy2 + t*t*t*ey) * sy
+            });
           }
           x = ex; y = ey;
         } else if (cmd === 'Q' || cmd === 'q') {
@@ -846,9 +914,7 @@
           x = sx0; y = sy0;
           if (cur.length >= 2) subpaths.push(cur);
           cur = [];
-        } else {
-          i++;
-        }
+        } else { i++; }
       }
       if (cur.length >= 2) subpaths.push(cur);
       return subpaths;
@@ -865,20 +931,15 @@
       const vb = svg.getAttribute('viewBox');
       if (vb && wMm && hMm) {
         const parts = vb.trim().split(/[\s,]+/).map(Number);
-        if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
-          sx = wMm / parts[2];
-          sy = hMm / parts[3];
-        }
+        if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) { sx = wMm / parts[2]; sy = hMm / parts[3]; }
       }
 
       const pads = [], allPts = [];
       const addPt = (x, y) => allPts.push({ x, y });
 
       svg.querySelectorAll('rect').forEach(el => {
-        const x = parseFloat(el.getAttribute('x') || 0) * sx;
-        const y = parseFloat(el.getAttribute('y') || 0) * sy;
-        const w = parseFloat(el.getAttribute('width') || 0) * sx;
-        const h = parseFloat(el.getAttribute('height') || 0) * sy;
+        const x = parseFloat(el.getAttribute('x') || 0) * sx, y = parseFloat(el.getAttribute('y') || 0) * sy;
+        const w = parseFloat(el.getAttribute('width') || 0) * sx, h = parseFloat(el.getAttribute('height') || 0) * sy;
         if (w <= 0 || h <= 0) return;
         const cx = x + w / 2, cy = -(y + h / 2);
         pads.push({ type: 'R', x: cx, y: cy, w, h });
@@ -886,8 +947,7 @@
       });
 
       svg.querySelectorAll('circle').forEach(el => {
-        const cx = parseFloat(el.getAttribute('cx') || 0) * sx;
-        const cy = -parseFloat(el.getAttribute('cy') || 0) * sy;
+        const cx = parseFloat(el.getAttribute('cx') || 0) * sx, cy = -parseFloat(el.getAttribute('cy') || 0) * sy;
         const r = parseFloat(el.getAttribute('r') || 0) * sx;
         if (r <= 0) return;
         pads.push({ type: 'C', x: cx, y: cy, d: r * 2 });
@@ -895,10 +955,8 @@
       });
 
       svg.querySelectorAll('ellipse').forEach(el => {
-        const cx = parseFloat(el.getAttribute('cx') || 0) * sx;
-        const cy = -parseFloat(el.getAttribute('cy') || 0) * sy;
-        const rx = parseFloat(el.getAttribute('rx') || 0) * sx;
-        const ry = parseFloat(el.getAttribute('ry') || 0) * sy;
+        const cx = parseFloat(el.getAttribute('cx') || 0) * sx, cy = -parseFloat(el.getAttribute('cy') || 0) * sy;
+        const rx = parseFloat(el.getAttribute('rx') || 0) * sx, ry = parseFloat(el.getAttribute('ry') || 0) * sy;
         if (rx <= 0 || ry <= 0) return;
         pads.push({ type: 'O', x: cx, y: cy, w: rx * 2, h: ry * 2 });
         addPt(cx - rx, cy - ry); addPt(cx + rx, cy + ry);
@@ -917,8 +975,7 @@
       svg.querySelectorAll('path').forEach(el => {
         const d = el.getAttribute('d');
         if (!d) return;
-        const subpaths = parseSvgPathPoints(d, sx, sy);
-        for (const pts of subpaths) {
+        for (const pts of parseSvgPathPoints(d, sx, sy)) {
           pts.forEach(p => addPt(p.x, p.y));
           if (pts.length >= 3) pads.push({ type: 'POLY', pts });
         }
@@ -1018,12 +1075,15 @@
     }
 
     // --- KONWERSJA PADA ---
-    function padToGeometryData(pad, comp, scale, cx, cy, mirrorX, mirrorY, rotRad) {
+    function padToGeometryData(pad, comp, scale, cx, cy, mirrorX, mirrorY, rotRad, offX, offY) {
       const transform = (x, y) => {
         let dx = x - cx, dy = y - cy;
         if (mirrorX) dx = -dx;
         if (mirrorY) dy = -dy;
-        return [dx * Math.cos(rotRad) - dy * Math.sin(rotRad), dx * Math.sin(rotRad) + dy * Math.cos(rotRad)];
+        return [
+          dx * Math.cos(rotRad) - dy * Math.sin(rotRad) + offX,
+          dx * Math.sin(rotRad) + dy * Math.cos(rotRad) + offY
+        ];
       };
 
       const pts = [];
@@ -1066,11 +1126,15 @@
       }
 
       if (pts.length < 3) return null;
+      let cxSum = 0, cySum = 0;
       const path = new THREE.Path(), shape = new THREE.Shape();
       path.moveTo(pts[0][0], pts[0][1]); shape.moveTo(pts[0][0], pts[0][1]);
-      for (let i = 1; i < pts.length; i++) { path.lineTo(pts[i][0], pts[i][1]); shape.lineTo(pts[i][0], pts[i][1]); }
+      for (let i = 0; i < pts.length; i++) {
+        cxSum += pts[i][0]; cySum += pts[i][1];
+        if (i > 0) { path.lineTo(pts[i][0], pts[i][1]); shape.lineTo(pts[i][0], pts[i][1]); }
+      }
       path.closePath(); shape.closePath();
-      return { path, shape, minDim };
+      return { path, shape, minDim, center: new THREE.Vector3(cxSum / pts.length, cySum / pts.length, 0) };
     }
 
     // --- BUDOWA MODELU 3D ---
@@ -1096,6 +1160,10 @@
       const ledgeHeight = parseFloat(document.getElementById('ledgeHeight').value) || 1.2;
       const clearance = parseFloat(document.getElementById('pcbClearance').value) || 0.2;
 
+      const arrX = Math.max(1, Math.min(8, parseInt(document.getElementById('arrayX').value, 10) || 1));
+      const arrY = Math.max(1, Math.min(8, parseInt(document.getElementById('arrayY').value, 10) || 1));
+      const arrGap = Math.max(0, parseFloat(document.getElementById('arrayGap').value) || 0);
+
       let b = parsedBoardBounds;
       if (!b) {
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -1111,7 +1179,10 @@
       let pcbW = b.maxX - b.minX, pcbH = b.maxY - b.minY;
       if (rotDeg === 90 || rotDeg === 270) [pcbW, pcbH] = [pcbH, pcbW];
 
-      const outerW = pcbW + margin * 2, outerH = pcbH + margin * 2;
+      const totalPcbW = arrX * pcbW + (arrX - 1) * arrGap;
+      const totalPcbH = arrY * pcbH + (arrY - 1) * arrGap;
+      const outerW = totalPcbW + margin * 2;
+      const outerH = totalPcbH + margin * 2;
       lastStencilDims = { w: outerW, h: outerH };
 
       const plateShape = new THREE.Shape();
@@ -1119,29 +1190,42 @@
       plateShape.lineTo(outerW / 2, outerH / 2); plateShape.lineTo(-outerW / 2, outerH / 2);
       plateShape.closePath();
 
-      let smallestPad = Infinity, activeCount = 0;
+      let smallestPad = Infinity, activePerBoard = 0;
 
-      parsedPads.forEach((pad, index) => {
-        const res = padToGeometryData(pad, padComp, padScale, cx, cy, mirrorX, mirrorY, rotRad);
-        if (!res) return;
-
-        const isExcluded = excludedPads.has(index);
-        if (!isExcluded) {
-          plateShape.holes.push(res.path);
-          if (res.minDim < smallestPad) smallestPad = res.minDim;
-          activeCount++;
+      const slots = [];
+      for (let r = 0; r < arrY; r++) {
+        for (let c = 0; c < arrX; c++) {
+          slots.push({
+            offX: -totalPcbW / 2 + pcbW / 2 + c * (pcbW + arrGap),
+            offY: totalPcbH / 2 - pcbH / 2 - r * (pcbH + arrGap)
+          });
         }
+      }
 
-        const hitMesh = new THREE.Mesh(
-          new THREE.ShapeGeometry(res.shape),
-          new THREE.MeshBasicMaterial({
-            color: isExcluded ? 0xef4444 : 0x10b981,
-            transparent: true, opacity: isExcluded ? 0.8 : 0.07, side: THREE.DoubleSide
-          })
-        );
-        hitMesh.position.z = thickness + 0.04;
-        hitMesh.userData.padIndex = index;
-        padHitGroup.add(hitMesh);
+      slots.forEach((slot, slotIdx) => {
+        parsedPads.forEach((pad, index) => {
+          const res = padToGeometryData(pad, padComp, padScale, cx, cy, mirrorX, mirrorY, rotRad, slot.offX, slot.offY);
+          if (!res) return;
+
+          const isExcluded = excludedPads.has(index);
+          if (!isExcluded) {
+            plateShape.holes.push(res.path);
+            if (res.minDim < smallestPad) smallestPad = res.minDim;
+            if (slotIdx === 0) activePerBoard++;
+          }
+
+          const hitMesh = new THREE.Mesh(
+            new THREE.ShapeGeometry(res.shape),
+            new THREE.MeshBasicMaterial({
+              color: isExcluded ? 0xef4444 : 0x10b981,
+              transparent: true, opacity: isExcluded ? 0.8 : 0.08, side: THREE.DoubleSide
+            })
+          );
+          hitMesh.position.z = thickness + 0.04;
+          hitMesh.userData.padIndex = index;
+          hitMesh.userData.worldCenter = new THREE.Vector3(res.center.x, res.center.y, thickness + 0.04);
+          padHitGroup.add(hitMesh);
+        });
       });
 
       stencilGroup.add(new THREE.Mesh(
@@ -1149,7 +1233,7 @@
         new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.42, metalness: 0.15 })
       ));
 
-      const cutW = pcbW + clearance * 2, cutH = pcbH + clearance * 2;
+      const cutTotalW = totalPcbW + clearance * 2, cutTotalH = totalPcbH + clearance * 2;
       const ledgeMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.45, metalness: 0.12 });
       const addLedge = (shape) => {
         const g = new THREE.ExtrudeGeometry(shape, { depth: ledgeHeight, bevelEnabled: false });
@@ -1162,31 +1246,43 @@
         s.moveTo(-outerW / 2, -outerH / 2); s.lineTo(outerW / 2, -outerH / 2);
         s.lineTo(outerW / 2, outerH / 2); s.lineTo(-outerW / 2, outerH / 2); s.closePath();
 
-        const hole = new THREE.Path();
-        if (ledgeType === 'full_notch') {
-          const nw = Math.min(12, cutH * 0.45) / 2, nd = Math.min(margin * 0.75, 6);
-          hole.moveTo(-cutW / 2, -cutH / 2); hole.lineTo(cutW / 2, -cutH / 2);
-          hole.lineTo(cutW / 2, -nw); hole.lineTo(cutW / 2 + nd, -nw);
-          hole.lineTo(cutW / 2 + nd, nw); hole.lineTo(cutW / 2, nw);
-          hole.lineTo(cutW / 2, cutH / 2); hole.lineTo(-cutW / 2, cutH / 2); hole.closePath();
+        const separatePockets = (arrX > 1 || arrY > 1) && (arrGap >= clearance * 2 + 0.4);
+        if (separatePockets) {
+          const cw = pcbW + clearance * 2, ch = pcbH + clearance * 2;
+          slots.forEach(({ offX, offY }) => {
+            const hole = new THREE.Path();
+            hole.moveTo(offX - cw / 2, offY - ch / 2); hole.lineTo(offX + cw / 2, offY - ch / 2);
+            hole.lineTo(offX + cw / 2, offY + ch / 2); hole.lineTo(offX - cw / 2, offY + ch / 2);
+            hole.closePath();
+            s.holes.push(hole);
+          });
         } else {
-          hole.moveTo(-cutW / 2, -cutH / 2); hole.lineTo(cutW / 2, -cutH / 2);
-          hole.lineTo(cutW / 2, cutH / 2); hole.lineTo(-cutW / 2, cutH / 2); hole.closePath();
+          const hole = new THREE.Path();
+          if (ledgeType === 'full_notch') {
+            const nw = Math.min(12, cutTotalH * 0.45) / 2, nd = Math.min(margin * 0.75, 6);
+            hole.moveTo(-cutTotalW / 2, -cutTotalH / 2); hole.lineTo(cutTotalW / 2, -cutTotalH / 2);
+            hole.lineTo(cutTotalW / 2, -nw); hole.lineTo(cutTotalW / 2 + nd, -nw);
+            hole.lineTo(cutTotalW / 2 + nd, nw); hole.lineTo(cutTotalW / 2, nw);
+            hole.lineTo(cutTotalW / 2, cutTotalH / 2); hole.lineTo(-cutTotalW / 2, cutTotalH / 2); hole.closePath();
+          } else {
+            hole.moveTo(-cutTotalW / 2, -cutTotalH / 2); hole.lineTo(cutTotalW / 2, -cutTotalH / 2);
+            hole.lineTo(cutTotalW / 2, cutTotalH / 2); hole.lineTo(-cutTotalW / 2, cutTotalH / 2); hole.closePath();
+          }
+          s.holes.push(hole);
         }
-        s.holes.push(hole);
         addLedge(s);
       } else if (ledgeType === 'lshape') {
         const s = new THREE.Shape();
         s.moveTo(-outerW / 2, -outerH / 2); s.lineTo(outerW / 2, -outerH / 2);
-        s.lineTo(outerW / 2, -cutH / 2); s.lineTo(-cutW / 2, -cutH / 2);
-        s.lineTo(-cutW / 2, outerH / 2); s.lineTo(-outerW / 2, outerH / 2); s.closePath();
+        s.lineTo(outerW / 2, -cutTotalH / 2); s.lineTo(-cutTotalW / 2, -cutTotalH / 2);
+        s.lineTo(-cutTotalW / 2, outerH / 2); s.lineTo(-outerW / 2, outerH / 2); s.closePath();
         addLedge(s);
       } else if (ledgeType === 'ushape') {
         const s = new THREE.Shape();
         s.moveTo(-outerW / 2, -outerH / 2); s.lineTo(outerW / 2, -outerH / 2);
-        s.lineTo(outerW / 2, outerH / 2); s.lineTo(cutW / 2, outerH / 2);
-        s.lineTo(cutW / 2, -cutH / 2); s.lineTo(-cutW / 2, -cutH / 2);
-        s.lineTo(-cutW / 2, outerH / 2); s.lineTo(-outerW / 2, outerH / 2); s.closePath();
+        s.lineTo(outerW / 2, outerH / 2); s.lineTo(cutTotalW / 2, outerH / 2);
+        s.lineTo(cutTotalW / 2, -cutTotalH / 2); s.lineTo(-cutTotalW / 2, -cutTotalH / 2);
+        s.lineTo(-cutTotalW / 2, outerH / 2); s.lineTo(-outerW / 2, outerH / 2); s.closePath();
         addLedge(s);
       } else if (ledgeType === 'tabs') {
         const tabW = Math.min(margin * 0.65, 5), tabH = Math.min(outerH * 0.5, 22);
@@ -1204,25 +1300,87 @@
       const minText = smallestPad === Infinity ? '-' : `${smallestPad.toFixed(2)} mm`;
       const warnNozzle = smallestPad < currentNozzle * 1.1 ? `<div class="warn">⚠ ${dict.hudWarnNozzle} ${currentNozzle} mm (${minText})</div>` : '';
       const warnBed = bedOverflow ? `<div class="err">✖ ${dict.hudWarnBed} (${bed.w}×${bed.h} mm)</div>` : '';
+      const panelInfo = (arrX > 1 || arrY > 1) ? ` |  <b>${dict.hudPanel}:</b> ${arrX}×${arrY} (${arrX * arrY})` : '';
 
       document.getElementById('hud').innerHTML = `
-        <div><b>${dict.hudPads}:</b> ${activeCount}/${parsedPads.length}  |  <b>${dict.hudMin}:</b> ${minText}</div>
+        <div><b>${dict.hudPads}:</b> ${activePerBoard}/${parsedPads.length}  |  <b>${dict.hudMin}:</b> ${minText}${panelInfo}</div>
         <div><b>PCB:</b> ${pcbW.toFixed(1)}×${pcbH.toFixed(1)} mm  |  <b>${dict.hudStencil}:</b> ${outerW.toFixed(1)}×${outerH.toFixed(1)} mm</div>
         <div><b>${dict.hudThick}:</b> ${thickness.toFixed(2)} mm  |  <b>XY:</b> ${padComp >= 0 ? '+' : ''}${padComp.toFixed(3)} mm</div>
         ${warnNozzle}${warnBed}
       `;
     }
 
-    // --- KLIKANIE PADÓW W 3D ---
+    // --- WYKLUCZANIE PADÓW: POJEDYNCZY KLIK + ZAZNACZANIE RAMKĄ ---
     const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
-    let downPos = { x: 0, y: 0 };
+    const selBoxEl = document.getElementById('selection-box');
+    let isDraggingBox = false;
+    let startClient = { x: 0, y: 0 };
 
-    renderer.domElement.addEventListener('pointerdown', (e) => { downPos = { x: e.clientX, y: e.clientY }; });
-    renderer.domElement.addEventListener('pointerup', (e) => {
-      if (!document.getElementById('excludeMode').checked) return;
-      if (Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+    const setSelectMode = (isBox) => {
+      boxSelectMode = isBox;
+      document.getElementById('modeSingle').classList.toggle('active', !isBox);
+      document.getElementById('modeBox').classList.toggle('active', isBox);
+      renderer.domElement.style.cursor = isBox ? 'crosshair' : 'default';
+    };
+    document.getElementById('modeSingle').onclick = () => setSelectMode(false);
+    document.getElementById('modeBox').onclick = () => setSelectMode(true);
 
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      startClient = { x: e.clientX, y: e.clientY };
+      if (boxSelectMode || e.shiftKey) {
+        isDraggingBox = true;
+        controls.enabled = false;
+        const rect = renderer.domElement.getBoundingClientRect();
+        selBoxEl.style.left = (e.clientX - rect.left) + 'px';
+        selBoxEl.style.top = (e.clientY - rect.top) + 'px';
+        selBoxEl.style.width = '0px';
+        selBoxEl.style.height = '0px';
+        selBoxEl.style.display = 'block';
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!isDraggingBox) return;
       const rect = renderer.domElement.getBoundingClientRect();
+      selBoxEl.style.left = (Math.min(startClient.x, e.clientX) - rect.left) + 'px';
+      selBoxEl.style.top = (Math.min(startClient.y, e.clientY) - rect.top) + 'px';
+      selBoxEl.style.width = Math.abs(e.clientX - startClient.x) + 'px';
+      selBoxEl.style.height = Math.abs(e.clientY - startClient.y) + 'px';
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      if (isDraggingBox) {
+        isDraggingBox = false;
+        controls.enabled = true;
+        selBoxEl.style.display = 'none';
+
+        const rect = renderer.domElement.getBoundingClientRect();
+        const minX = Math.min(startClient.x, e.clientX), maxX = Math.max(startClient.x, e.clientX);
+        const minY = Math.min(startClient.y, e.clientY), maxY = Math.max(startClient.y, e.clientY);
+
+        if (maxX - minX > 5 && maxY - minY > 5) {
+          const hitIndices = new Set(), proj = new THREE.Vector3();
+          padHitGroup.children.forEach(mesh => {
+            proj.copy(mesh.userData.worldCenter).project(camera);
+            const sx = (proj.x * 0.5 + 0.5) * rect.width + rect.left;
+            const sy = (-proj.y * 0.5 + 0.5) * rect.height + rect.top;
+            if (sx >= minX && sx <= maxX && sy >= minY && sy <= maxY) hitIndices.add(mesh.userData.padIndex);
+          });
+          if (hitIndices.size > 0) {
+            const anyActive = Array.from(hitIndices).some(idx => !excludedPads.has(idx));
+            hitIndices.forEach(idx => anyActive ? excludedPads.add(idx) : excludedPads.delete(idx));
+            updateExcludedLabel();
+            rebuildStencil();
+          }
+        }
+        return;
+      }
+
+      if (Math.hypot(e.clientX - startClient.x, e.clientY - startClient.y) > 5) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+
       pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
@@ -1230,12 +1388,14 @@
       if (hits.length > 0) {
         const idx = hits[0].object.userData.padIndex;
         if (excludedPads.has(idx)) excludedPads.delete(idx); else excludedPads.add(idx);
-        updateExcludedLabel(); rebuildStencil();
+        updateExcludedLabel();
+        rebuildStencil();
       }
     });
+
     document.getElementById('btnResetExcluded').onclick = () => { excludedPads.clear(); updateExcludedLabel(); rebuildStencil(); };
 
-    // --- EKSPORT STL & .3MF ---
+    // --- EKSPORTERY: STL, OBJ, .3MF (BAMBU STUDIO) I .ZIP ---
     function exportGroupToBinarySTL(group) {
       group.updateMatrixWorld(true);
       const triangles = [];
@@ -1265,9 +1425,29 @@
       return new Blob([buffer], { type: 'application/octet-stream' });
     }
 
-    async function exportBambu3MF(filename) {
-      if (parsedPads.length === 0) return alert(I18N[lang].alertNoData);
+    function exportGroupToOBJ(group) {
+      group.updateMatrixWorld(true);
+      let out = '# Stencil 3D Studio\n';
+      let vOffset = 1;
+      const vTmp = new THREE.Vector3();
+      group.traverse((obj) => {
+        if (!obj.isMesh) return;
+        const pos = obj.geometry.attributes.position, idx = obj.geometry.index, mat = obj.matrixWorld;
+        for (let i = 0; i < pos.count; i++) {
+          vTmp.fromBufferAttribute(pos, i).applyMatrix4(mat);
+          out += `v ${vTmp.x.toFixed(4)} ${vTmp.y.toFixed(4)} ${vTmp.z.toFixed(4)}\n`;
+        }
+        if (idx) {
+          for (let i = 0; i < idx.count; i += 3) out += `f ${idx.getX(i) + vOffset} ${idx.getX(i + 1) + vOffset} ${idx.getX(i + 2) + vOffset}\n`;
+        } else {
+          for (let i = 0; i < pos.count; i += 3) out += `f ${i + vOffset} ${i + 1 + vOffset} ${i + 2 + vOffset}\n`;
+        }
+        vOffset += pos.count;
+      });
+      return new Blob([out], { type: 'text/plain' });
+    }
 
+    async function buildBambu3MFBlob() {
       stencilGroup.updateMatrixWorld(true);
       const bed = getBedSize() || { w: 180, h: 180 };
       const offsetX = bed.w / 2, offsetY = bed.h / 2;
@@ -1291,19 +1471,55 @@
       const customLayerH = parseFloat(document.getElementById('bambuLayerH').value) || 0;
       const autoLayerH = currentNozzle <= 0.2 ? Math.min(0.08, +(thickness / 2).toFixed(2)) : Math.min(0.12, +(thickness / 2).toFixed(2));
       const finalLayerH = Math.max(0.04, customLayerH > 0 ? customLayerH : autoLayerH).toFixed(2);
+      const wallGen = document.getElementById('bambuWallGen').value || 'arachne';
+      const firstSpeed = String(document.getElementById('bambuFirstSpeed').value || '25');
+      const eleph = String(document.getElementById('bambuEleph').value || '0');
 
       const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
-<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
-  <metadata name="Application">Stencil 3D Studio 2026</metadata>
-  <resources><object id="1" type="model"><mesh><vertices>${vertices.join('')}</vertices><triangles>${triangles.join('')}</triangles></mesh></object></resources>
-  <build><item objectid="1"/></build>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:BambuStudio="http://schemas.bambulab.com/package/2021">
+  <metadata name="Application">BambuStudio-01.10.01.50</metadata>
+  <metadata name="BambuStudio:3mfVersion">1</metadata>
+  <resources>
+    <object id="1" type="model">
+      <mesh>
+        <vertices>${vertices.join('')}</vertices>
+        <triangles>${triangles.join('')}</triangles>
+      </mesh>
+    </object>
+  </resources>
+  <build>
+    <item objectid="1" printable="1"/>
+  </build>
 </model>`;
 
+      const modelSettingsXml = `<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <object id="1">
+    <metadata key="name" value="SMD_Stencil"/>
+    <metadata key="extruder" value="1"/>
+    <metadata key="wall_generator" value="${wallGen}"/>
+    <metadata key="sparse_infill_density" value="100%"/>
+    <metadata key="elefant_foot_compensation" value="${eleph}"/>
+    <metadata key="wall_loops" value="2"/>
+  </object>
+  <plate>
+    <metadata key="plater_id" value="1"/>
+    <metadata key="plater_name" value="Stencil"/>
+    <model_instance>
+      <metadata key="object_id" value="1"/>
+      <metadata key="instance_id" value="0"/>
+    </model_instance>
+  </plate>
+</config>`;
+
       const bambuConfig = {
-        wall_generator: document.getElementById('bambuWallGen').value || 'arachne',
+        from: 'User',
+        version: '01.10.01.50',
+        is_custom_defined: '0',
+        wall_generator: wallGen,
         layer_height: finalLayerH,
         initial_layer_print_height: finalLayerH,
-        elefant_foot_compensation: String(document.getElementById('bambuEleph').value || '0'),
+        elefant_foot_compensation: eleph,
         sparse_infill_density: '100%',
         sparse_infill_pattern: 'monotonic',
         top_surface_pattern: 'monotonic',
@@ -1312,29 +1528,29 @@
         detect_thin_wall: '1',
         nozzle_diameter: [String(currentNozzle)],
         outer_wall_speed: '40',
-        initial_layer_speed: String(document.getElementById('bambuFirstSpeed').value || '25'),
-        initial_layer_infill_speed: String(document.getElementById('bambuFirstSpeed').value || '25')
+        initial_layer_speed: firstSpeed,
+        initial_layer_infill_speed: firstSpeed
       };
 
       const zip = new JSZip();
-      zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="config" ContentType="application/json"/></Types>`);
+      zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/><Default Extension="config" ContentType="text/xml"/></Types>`);
       zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>`);
       zip.file('3D/3dmodel.model', modelXml);
+      zip.file('Metadata/model_settings.config', modelSettingsXml);
       zip.file('Metadata/project_settings.config', JSON.stringify(bambuConfig, null, 2));
 
-      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+      return await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
     }
 
-    function downloadSTL(filename) {
-      if (parsedPads.length === 0) return alert(I18N[lang].alertNoData);
-      const blob = exportGroupToBinarySTL(stencilGroup);
+    function triggerDownload(blob, filename) {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
     }
 
-    // --- OBSŁUGA PLIKÓW (GERBER + SVG) ---
+    // --- OBSŁUGA PLIKÓW ---
     async function handleFiles(fileList) {
       for (const file of Array.from(fileList)) {
         const name = file.name.toLowerCase();
@@ -1343,15 +1559,8 @@
         const res = isSvg ? parseSVG(text) : parseGerber(text);
 
         const isEdge = name.includes('edge') || name.includes('outline') || name.includes('cut') || name.endsWith('.gm1') || name.endsWith('.gko');
-        if (isEdge) {
-          parsedBoardBounds = res.bounds;
-          loadedEdgeName = file.name;
-        } else {
-          parsedPads = res.pads;
-          excludedPads.clear();
-          loadedPasteName = file.name;
-          updateExcludedLabel();
-        }
+        if (isEdge) { parsedBoardBounds = res.bounds; loadedEdgeName = file.name; }
+        else { parsedPads = res.pads; excludedPads.clear(); loadedPasteName = file.name; updateExcludedLabel(); }
       }
       updateFileChips();
       rebuildStencil();
@@ -1392,7 +1601,7 @@
     };
 
     const setNozzlePreset = (btnId, nozzle, thick, comp, margin) => {
-      document.querySelectorAll('#preset02, #preset04, #presetThin').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#preset02, #preset04').forEach(b => b.classList.remove('active'));
       document.getElementById(btnId).classList.add('active');
       currentNozzle = nozzle;
       setParamValue('thickness', thick, false);
@@ -1402,33 +1611,77 @@
 
     document.getElementById('preset02').onclick = () => setNozzlePreset('preset02', 0.2, 0.12, 0.04, 10);
     document.getElementById('preset04').onclick = () => setNozzlePreset('preset04', 0.4, 0.20, 0.08, 12);
-    document.getElementById('presetThin').onclick = () => setNozzlePreset('presetThin', 0.2, 0.08, 0.04, 10);
 
-    ['mirrorX', 'mirrorY', 'rotation', 'ledgeType'].forEach(id => document.getElementById(id).addEventListener('input', rebuildStencil));
+    ['mirrorX', 'mirrorY', 'rotation', 'ledgeType', 'arrayX', 'arrayY', 'arrayGap'].forEach(id => {
+      document.getElementById(id).addEventListener('input', rebuildStencil);
+    });
     document.getElementById('bedPreset').addEventListener('change', () => { rebuildBed(); rebuildStencil(); });
 
-    document.getElementById('btnExport3MF').onclick = () => {
-      const t = document.getElementById('thickness').value, c = document.getElementById('padComp').value;
-      const m = document.getElementById('mirrorX').checked ? '_mirrorX' : '';
-      exportBambu3MF(`stencil_Bambu_${currentNozzle}mm_T${t}_XY${c}${m}.3mf`);
+    const getArraySuffix = () => {
+      const ax = parseInt(document.getElementById('arrayX').value, 10) || 1;
+      const ay = parseInt(document.getElementById('arrayY').value, 10) || 1;
+      return (ax > 1 || ay > 1) ? `_${ax}x${ay}` : '';
     };
-    document.getElementById('btnExportSTL').onclick = () => {
-      const t = document.getElementById('thickness').value, c = document.getElementById('padComp').value;
-      const m = document.getElementById('mirrorX').checked ? '_mirrorX' : '';
-      downloadSTL(`stencil_T${t}_XY${c}${m}.stl`);
-    };
-    document.getElementById('btnExportPack').onclick = () => {
+
+    document.querySelectorAll('.fmt-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedFormat = btn.dataset.fmt;
+        updateExportUI();
+      };
+    });
+
+    document.getElementById('btnDownloadMain').onclick = async () => {
       if (parsedPads.length === 0) return alert(I18N[lang].alertNoData);
-      const origComp = parseFloat(document.getElementById('padComp').value) || 0;
-      const step = parseFloat(document.getElementById('packStep').value) || 0.04;
       const t = document.getElementById('thickness').value;
-      [origComp - step, origComp, origComp + step].forEach((v, idx) => {
-        setTimeout(() => {
-          setParamValue('padComp', Number(v.toFixed(3)), true);
-          downloadSTL(`stencil_T${t}_XY${v.toFixed(3)}.stl`);
-          if (idx === 2) setParamValue('padComp', origComp, true);
-        }, idx * 450);
-      });
+      const c = document.getElementById('padComp').value;
+      const m = document.getElementById('mirrorX').checked ? '_mirrorX' : '';
+      const suffix = getArraySuffix();
+      const baseName = `stencil_T${t}_XY${c}${suffix}${m}`;
+
+      if (selectedFormat === '3mf') {
+        triggerDownload(await buildBambu3MFBlob(), `stencil_Bambu_${currentNozzle}mm_T${t}_XY${c}${suffix}${m}.3mf`);
+      } else if (selectedFormat === 'stl') {
+        triggerDownload(exportGroupToBinarySTL(stencilGroup), `${baseName}.stl`);
+      } else if (selectedFormat === 'obj') {
+        triggerDownload(exportGroupToOBJ(stencilGroup), `${baseName}.obj`);
+      } else if (selectedFormat === 'zip') {
+        const incStl = document.getElementById('zipIncStl').checked;
+        const inc3mf = document.getElementById('zipInc3mf').checked;
+        const incObj = document.getElementById('zipIncObj').checked;
+        const incPack = document.getElementById('zipIncPack').checked;
+        const incTxt = document.getElementById('zipIncTxt').checked;
+
+        if (!incStl && !inc3mf && !incObj && !incPack && !incTxt) {
+          return alert(I18N[lang].alertEmptyZip);
+        }
+
+        const archive = new JSZip();
+        const origComp = parseFloat(c) || 0;
+        const step = parseFloat(document.getElementById('packStep').value) || 0.04;
+
+        if (incPack) {
+          for (const v of [origComp - step, origComp, origComp + step]) {
+            const valStr = v.toFixed(3);
+            setParamValue('padComp', Number(valStr), true);
+            archive.file(`variants/stencil_T${t}_XY${valStr}${suffix}${m}.stl`, exportGroupToBinarySTL(stencilGroup));
+          }
+          setParamValue('padComp', origComp, true);
+        }
+
+        if (incStl) archive.file(`${baseName}.stl`, exportGroupToBinarySTL(stencilGroup));
+        if (inc3mf) archive.file(`stencil_Bambu_${currentNozzle}mm_T${t}_XY${c}${suffix}${m}.3mf`, await buildBambu3MFBlob());
+        if (incObj) archive.file(`${baseName}.obj`, exportGroupToOBJ(stencilGroup));
+        if (incTxt) {
+          archive.file('ustawienia.txt',
+            `Dysza: ${currentNozzle} mm\nGrubość: ${t} mm\nKorekta XY: ${origComp} mm\nPanel: ${document.getElementById('arrayX').value}x${document.getElementById('arrayY').value}\nWykluczone pady: ${excludedPads.size}\n`
+          );
+        }
+
+        const zipBlob = await archive.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+        triggerDownload(zipBlob, `stencil_pack_T${t}${suffix}.zip`);
+      }
     };
 
     const setCam = (x, y, z) => { camera.position.set(x, y, z); controls.target.set(0, 0, 0); };
