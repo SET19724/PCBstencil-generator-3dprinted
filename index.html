@@ -3,208 +3,199 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SMD Stencil 3D Studio — 2026 Edition</title>
+  <title>Stencil 3D — Generator szablonów SMD</title>
   <style>
     :root {
-      --bg: #090b0f;
-      --glass: rgba(16, 19, 26, 0.78);
-      --card: rgba(24, 28, 38, 0.72);
-      --border: rgba(255, 255, 255, 0.09);
-      --border-strong: rgba(255, 255, 255, 0.16);
-      --accent: #00e599;
-      --accent-dim: rgba(0, 229, 153, 0.15);
-      --blue: #38bdf8;
-      --danger: #f43f5e;
+      --canvas: #0e1014;
+      --surface: #161920;
+      --surface-2: #1e222b;
+      --border: #2a2f3b;
+      --border-hover: #3b4252;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.14);
+      --text: #f3f4f6;
+      --text-dim: #9ca3af;
+      --danger: #ef4444;
       --warn: #f59e0b;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
     }
     * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; }
     body {
-      margin: 0; background: var(--bg); color: var(--text);
-      width: 100vw; height: 100vh; overflow: hidden; user-select: none;
+      margin: 0; background: var(--canvas); color: var(--text);
+      display: flex; width: 100vw; height: 100vh; overflow: hidden; user-select: none;
     }
 
-    /* Full-bleed 3D Viewport */
-    #viewport { position: fixed; inset: 0; z-index: 1; }
-
-    /* Floating Left Inspector (Glassmorphism + Bento) */
+    /* Prosty, matowy panel boczny */
     aside {
-      position: fixed; top: 14px; left: 14px; bottom: 14px; width: 382px; z-index: 10;
-      background: var(--glass); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border); border-radius: 16px;
-      padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+      width: 348px; height: 100vh; background: var(--surface);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      z-index: 10; flex-shrink: 0;
     }
-    aside::-webkit-scrollbar { width: 5px; }
-    aside::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 10px; }
-
-    .brand-bar {
-      display: flex; justify-content: space-between; align-items: center; gap: 8px;
-      padding-bottom: 6px; border-bottom: 1px solid var(--border);
-    }
-    .brand-title { display: flex; align-items: center; gap: 8px; }
-    .brand-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-    h1 { font-size: 14px; margin: 0; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
-    h2 {
-      font-size: 10.5px; margin: 0 0 9px 0; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+    .header {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center;
     }
+    .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
 
-    /* Top-right floating bar */
-    #top-bar {
-      position: fixed; top: 14px; right: 14px; z-index: 10;
-      display: flex; align-items: center; gap: 8px;
+    /* Zakładki 1-2-3 */
+    .tabs {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+      padding: 10px 14px; border-bottom: 1px solid var(--border); background: #13161c;
     }
-    .pill {
-      background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border); border-radius: 12px; padding: 6px 10px;
-      display: flex; align-items: center; gap: 8px; font-size: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    .tab-btn {
+      background: transparent; border: 1px solid transparent; color: var(--text-dim);
+      padding: 7px 6px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.15s;
     }
-    .engine-badge {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 11px; color: var(--accent); font-weight: 600;
-    }
+    .tab-btn:hover { color: var(--text); background: var(--surface-2); }
+    .tab-btn.active { background: var(--surface-2); color: var(--accent); border-color: var(--border-hover); }
 
-    /* Switch toggle for Advanced Mode */
-    .switch-wrap { display: flex; align-items: center; gap: 7px; cursor: pointer; font-size: 12px; font-weight: 600; }
-    .switch {
-      position: relative; width: 34px; height: 19px; background: rgba(255,255,255,0.12);
-      border-radius: 20px; transition: 0.2s; border: 1px solid var(--border-strong);
+    .panel-body {
+      flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px;
     }
-    .switch::after {
-      content: ''; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px;
-      background: #fff; border-radius: 50%; transition: 0.2s;
-    }
-    input.switch-input { display: none; }
-    input.switch-input:checked + .switch { background: var(--accent); border-color: var(--accent); }
-    input.switch-input:checked + .switch::after { transform: translateX(15px); background: #04130d; }
+    .panel-body::-webkit-scrollbar { width: 5px; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+    .tab-pane { display: none; flex-direction: column; gap: 14px; }
+    .tab-pane.active { display: flex; }
 
-    /* Bento Cards */
-    .card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 11px 12px;
+    /* Sekcje i kontrolki */
+    .section-title {
+      font-size: 11px; font-weight: 600; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
     }
+    .box {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px;
+    }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 9px; font-size: 12.5px; }
+    .row:last-child { margin-bottom: 0; }
     .adv-only { display: none; }
     body.advanced .adv-only { display: block; }
-    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
-    .row:last-child { margin-bottom: 0; }
     .row.adv-only { display: none; }
     body.advanced .row.adv-only { display: flex; }
 
-    /* Precision Slider Control (Input above + 5-stop slider + ticks below) */
-    .param-block { margin-bottom: 11px; }
-    .param-block:last-child { margin-bottom: 0; }
-    .param-head {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;
+    /* Dropzone */
+    .drop-area {
+      border: 1.5px dashed var(--border-hover); border-radius: 10px; padding: 18px 12px;
+      text-align: center; cursor: pointer; transition: 0.15s; background: rgba(14,16,20,0.45);
     }
-    .param-head label { font-size: 12px; color: var(--text); font-weight: 500; }
-    .num-wrap {
-      display: flex; align-items: center; gap: 4px;
-      background: rgba(9, 11, 15, 0.85); border: 1px solid var(--border-strong);
-      border-radius: 7px; padding: 2px 6px;
+    .drop-area:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .drop-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .drop-sub { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+    .file-chips { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+    .chip {
+      font-size: 11px; font-family: ui-monospace, monospace; background: var(--canvas);
+      border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px;
+      color: var(--accent); display: flex; justify-content: space-between; align-items: center;
     }
-    .num-wrap input[type="number"] {
-      width: 66px; background: transparent; border: none; color: var(--accent);
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-variant-numeric: tabular-nums; font-size: 12.5px; font-weight: 600;
-      text-align: right; outline: none; padding: 2px 0;
+
+    /* Suwak 5-stopniowy + okienko u góry */
+    .param { margin-bottom: 12px; }
+    .param:last-child { margin-bottom: 0; }
+    .param-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+    .param-top label { font-size: 12.5px; color: var(--text); font-weight: 500; }
+    .num-box {
+      display: flex; align-items: center; gap: 4px; background: var(--canvas);
+      border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px;
     }
-    .num-wrap span { font-size: 11px; color: var(--muted); }
+    .num-box input {
+      width: 58px; background: transparent; border: none; color: var(--accent);
+      font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums;
+      font-size: 12.5px; font-weight: 600; text-align: right; outline: none;
+    }
+    .num-box span { font-size: 11px; color: var(--text-dim); }
 
     input[type="range"].p-slider {
-      -webkit-appearance: none; appearance: none; width: 100%; height: 5px;
-      background: rgba(255, 255, 255, 0.12); border-radius: 6px; outline: none; margin: 4px 0;
-      cursor: pointer;
+      -webkit-appearance: none; appearance: none; width: 100%; height: 4px;
+      background: var(--border); border-radius: 4px; outline: none; margin: 5px 0; cursor: pointer;
     }
     input[type="range"].p-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; appearance: none; width: 15px; height: 15px;
-      border-radius: 50%; background: var(--accent); border: 2px solid #090b0f;
-      box-shadow: 0 0 10px rgba(0, 229, 153, 0.5); transition: transform 0.1s;
+      -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
+      border-radius: 50%; background: var(--accent); border: 2px solid var(--canvas);
     }
-    input[type="range"].p-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
-
-    .ticks {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 3px;
-    }
+    .ticks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
     .tick-btn {
       background: transparent; border: 1px solid transparent; border-radius: 5px;
-      color: var(--muted); font-size: 10.5px; padding: 2px 0; cursor: pointer;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums;
-      text-align: center; transition: 0.12s;
+      color: var(--text-dim); font-size: 10.5px; padding: 3px 0; cursor: pointer;
+      font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums;
     }
-    .tick-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
-    .tick-btn.active { color: var(--accent); background: var(--accent-dim); border-color: rgba(0,229,153,0.35); font-weight: 700; }
+    .tick-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .tick-btn.active { color: var(--accent); background: var(--accent-soft); border-color: rgba(16,185,129,0.35); font-weight: 700; }
 
+    /* Przyciski i pola */
     select, input[type="number"].std-num {
-      background: rgba(9, 11, 15, 0.85); color: var(--text);
-      border: 1px solid var(--border-strong); border-radius: 7px; padding: 4px 8px;
-      font-size: 12px; outline: none;
+      background: var(--canvas); color: var(--text); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 8px; font-size: 12px; outline: none;
     }
     select:focus, input[type="number"]:focus { border-color: var(--accent); }
-    input[type="file"] { width: 100%; font-size: 11px; color: var(--muted); }
     input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
 
-    .drop-mini {
-      border: 1.5px dashed var(--border-strong); border-radius: 9px; padding: 10px;
-      text-align: center; font-size: 11.5px; color: var(--muted); margin-bottom: 8px;
-      transition: 0.15s; cursor: pointer; background: rgba(9,11,15,0.35);
-    }
-    .drop-mini:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,153,0.06); }
-    .file-status { font-size: 10.5px; color: var(--accent); margin-top: 4px; word-break: break-all; font-family: monospace; }
-
-    .btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
+    .btn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     button {
-      background: rgba(255, 255, 255, 0.06); color: var(--text); border: 1px solid var(--border);
-      border-radius: 8px; padding: 6px 9px; font-size: 11.5px; cursor: pointer; transition: 0.15s;
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 7px; padding: 7px 10px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.15s;
     }
-    button:hover { border-color: var(--accent); background: rgba(255, 255, 255, 0.1); }
-    button.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-    button.bambu {
-      background: linear-gradient(135deg, #00e599, #10b981); color: #04130d;
-      border: none; font-weight: 700; width: 100%; padding: 10px; font-size: 13px;
+    button:hover { border-color: var(--border-hover); background: #262b36; }
+    button.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+    button.cta {
+      background: var(--accent); color: #05140e; border: none; font-weight: 700;
+      width: 100%; padding: 11px; font-size: 13px; border-radius: 8px;
     }
-    button.bambu:hover { filter: brightness(1.08); }
-    button.primary {
-      background: rgba(56, 189, 248, 0.18); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.45);
-      font-weight: 700; width: 100%; padding: 9px; font-size: 12.5px;
-    }
-    button.primary:hover { background: rgba(56, 189, 248, 0.28); }
-    button.danger { border-color: rgba(244, 63, 94, 0.45); color: #fda4af; }
-    button.danger:hover { background: rgba(244, 63, 94, 0.16); }
+    button.cta:hover { filter: brightness(1.08); }
+    button.secondary { width: 100%; padding: 9px; font-weight: 600; }
+    button.danger { color: #fca5a5; border-color: rgba(239,68,68,0.4); }
+    button.danger:hover { background: rgba(239,68,68,0.12); }
 
-    /* Floating HUD & Bottom Camera Dock */
+    /* Przełącznik Pro */
+    .footer-bar {
+      padding: 10px 16px; border-top: 1px solid var(--border); background: #13161c;
+      display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+    }
+    .switch-wrap { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: var(--text-dim); }
+    .switch {
+      position: relative; width: 32px; height: 18px; background: var(--border);
+      border-radius: 20px; transition: 0.2s;
+    }
+    .switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+      background: #fff; border-radius: 50%; transition: 0.2s;
+    }
+    input.switch-input { display: none; }
+    input.switch-input:checked + .switch { background: var(--accent); }
+    input.switch-input:checked + .switch::after { transform: translateX(14px); background: #05140e; }
+
+    /* Obszar 3D */
+    main { flex: 1; position: relative; overflow: hidden; }
+    #viewport { width: 100%; height: 100%; }
     #hud {
-      position: fixed; top: 14px; left: 410px; z-index: 9;
-      background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border); border-radius: 12px; padding: 9px 13px;
-      font-size: 11.5px; line-height: 1.55; pointer-events: none;
-      font-variant-numeric: tabular-nums; max-width: 440px;
+      position: absolute; top: 14px; left: 14px;
+      background: rgba(22, 25, 32, 0.88); backdrop-filter: blur(10px);
+      border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px;
+      font-size: 12px; line-height: 1.55; pointer-events: none; font-variant-numeric: tabular-nums;
+    }
+    #engine-pill {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(22, 25, 32, 0.85); border: 1px solid var(--border);
+      border-radius: 8px; padding: 5px 10px; font-size: 11px;
+      font-family: ui-monospace, monospace; color: var(--text-dim);
     }
     #cam-dock {
-      position: fixed; bottom: 16px; left: calc(50% + 190px); transform: translateX(-50%);
-      z-index: 10; background: var(--glass); backdrop-filter: blur(16px);
-      border: 1px solid var(--border); border-radius: 14px; padding: 6px;
-      display: flex; gap: 5px; box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(22, 25, 32, 0.9); backdrop-filter: blur(10px);
+      border: 1px solid var(--border); border-radius: 10px; padding: 5px;
+      display: flex; gap: 4px;
     }
-
     #drop-overlay {
-      position: fixed; inset: 0; background: rgba(9, 11, 15, 0.88); backdrop-filter: blur(8px);
+      position: fixed; inset: 0; background: rgba(14, 16, 20, 0.9);
       border: 3px dashed var(--accent); z-index: 999; display: none;
       align-items: center; justify-content: center; flex-direction: column;
-      font-size: 22px; font-weight: 700; color: var(--accent); pointer-events: none;
+      font-size: 20px; font-weight: 700; color: var(--accent); pointer-events: none;
     }
     #drop-overlay.show { display: flex; }
-
     .warn { color: var(--warn); font-weight: 600; }
     .err { color: var(--danger); font-weight: 600; }
-    .hint { font-size: 10.5px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
-    .badge-pro {
-      font-size: 9.5px; background: rgba(56, 189, 248, 0.18); color: var(--blue);
-      padding: 1px 6px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.35);
-    }
+    .hint { font-size: 11px; color: var(--text-dim); line-height: 1.45; margin-top: 6px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script type="importmap">
@@ -220,253 +211,244 @@
 </head>
 <body>
   <div id="drop-overlay">
-    <div data-i18n="dropOverlayTitle">Upuść pliki Gerber tutaj</div>
-    <div style="font-size:13px;color:#e6e9ef;margin-top:8px;" data-i18n="dropOverlaySub">F.Paste / B.Paste (.gtp, .gbp, .gbr) oraz Edge_Cuts (.gm1, .gko)</div>
+    <div data-i18n="dropOverlayTitle">Upuść pliki Gerber lub SVG tutaj</div>
+    <div style="font-size:13px;color:#9ca3af;margin-top:6px;" data-i18n="dropOverlaySub">F_Paste / B_Paste oraz Edge_Cuts (.gbr, .gtp, .gbp, .gm1, .svg)</div>
   </div>
 
-  <div id="viewport"></div>
-
-  <!-- Top-Right Floating Controls -->
-  <div id="top-bar">
-    <div class="pill">
-      <span class="engine-badge" id="engineBadge">Three.js r187 · Init...</span>
+  <aside>
+    <div class="header">
+      <div class="logo"><span class="logo-dot"></span><span>Stencil 3D</span></div>
+      <div class="header-actions">
+        <button id="langPL" class="active" style="padding:4px 8px;font-size:11px;">PL</button>
+        <button id="langEN" style="padding:4px 8px;font-size:11px;">EN</button>
+      </div>
     </div>
-    <div class="pill">
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="files" data-i18n="tabFiles">1. Pliki</button>
+      <button class="tab-btn" data-tab="setup" data-i18n="tabSetup">2. Ustawienia</button>
+      <button class="tab-btn" data-tab="export" data-i18n="tabExport">3. Eksport</button>
+    </div>
+
+    <div class="panel-body">
+      <!-- ZAKŁADKA 1: PLIKI -->
+      <div class="tab-pane active" id="pane-files">
+        <div class="drop-area" id="dropZone">
+          <div class="drop-title" data-i18n="dropTitle">Przeciągnij pliki Gerber lub SVG</div>
+          <div class="drop-sub" data-i18n="dropSub">Obsługuje .gbr, .gtp, .gbp, .gm1, .gko oraz .svg<br>(kliknij, aby wybrać z dysku)</div>
+          <input type="file" id="multiFile" multiple accept=".gbr,.gtp,.gbp,.gm1,.gko,.svg,.txt" style="display:none;" />
+        </div>
+
+        <div class="file-chips" id="fileChips"></div>
+
+        <button id="btnDemo" class="secondary" data-i18n="btnDemo">Załaduj przykładową płytkę (Demo)</button>
+
+        <div class="box">
+          <div class="section-title" data-i18n="secBed">Stół roboczy (Bambu Lab)</div>
+          <div class="row">
+            <label data-i18n="lblBed">Drukarka</label>
+            <select id="bedPreset">
+              <option value="180x180">A1 Mini (180×180 mm)</option>
+              <option value="256x256">A1 / P1S / X1C (256×256 mm)</option>
+              <option value="350x320">H2D (350×320 mm)</option>
+              <option value="none" data-i18n="optBedNone">Ukryj stół</option>
+            </select>
+          </div>
+          <div class="hint" data-i18n="hintFiles">Możesz wrzucić naraz warstwę pasty (F_Paste / B_Paste) i obrys płytki (Edge_Cuts).</div>
+        </div>
+      </div>
+
+      <!-- ZAKŁADKA 2: USTAWIENIA -->
+      <div class="tab-pane" id="pane-setup">
+        <div class="box">
+          <div class="section-title" data-i18n="secNozzle">Preset dyszy</div>
+          <div class="btn-row">
+            <button id="preset02" class="active">0.2 mm</button>
+            <button id="preset04">0.4 mm</button>
+            <button id="presetThin" data-i18n="preThin">0.08 Ultra</button>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="section-title" data-i18n="secDims">Wymiary szablonu</div>
+
+          <div class="param">
+            <div class="param-top">
+              <label data-i18n="lblThick">Grubość szablonu</label>
+              <div class="num-box"><input type="number" id="thickness" value="0.12" step="0.01" min="0.06" max="0.50" /><span>mm</span></div>
+            </div>
+            <input type="range" class="p-slider" id="slider_thickness" />
+            <div class="ticks" id="ticks_thickness"></div>
+          </div>
+
+          <div class="param">
+            <div class="param-top">
+              <label data-i18n="lblExpand">Poszerzenie padów XY</label>
+              <div class="num-box"><input type="number" id="padComp" value="0.04" step="0.005" min="-0.30" max="0.40" /><span>mm</span></div>
+            </div>
+            <input type="range" class="p-slider" id="slider_padComp" />
+            <div class="ticks" id="ticks_padComp"></div>
+          </div>
+
+          <div class="param">
+            <div class="param-top">
+              <label data-i18n="lblMargin">Margines wokół PCB</label>
+              <div class="num-box"><input type="number" id="margin" value="10" step="0.5" min="2" max="40" /><span>mm</span></div>
+            </div>
+            <input type="range" class="p-slider" id="slider_margin" />
+            <div class="ticks" id="ticks_margin"></div>
+          </div>
+
+          <div class="param adv-only">
+            <div class="param-top">
+              <label data-i18n="lblScale">Skala padów</label>
+              <div class="num-box"><input type="number" id="padScale" value="100" step="1" min="60" max="150" /><span>%</span></div>
+            </div>
+            <input type="range" class="p-slider" id="slider_padScale" />
+            <div class="ticks" id="ticks_padScale"></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="section-title" data-i18n="secFrame">Nakładka i orientacja</div>
+          <div class="row">
+            <label data-i18n="lblFrameType">Typ ramki</label>
+            <select id="ledgeType">
+              <option value="lshape" data-i18n="optL">Narożnikowa L (2 boki)</option>
+              <option value="ushape" data-i18n="optU">Wsuwana U (3 boki)</option>
+              <option value="full" data-i18n="optFull">Pełna ramka (4 boki)</option>
+              <option value="full_notch" data-i18n="optFullNotch">Pełna + wycięcie na palec</option>
+              <option value="tabs" data-i18n="optTabs">Płaski + uchwyty boczne</option>
+              <option value="none" data-i18n="optNone">Płaski arkusz</option>
+            </select>
+          </div>
+          <div class="row">
+            <label data-i18n="lblMirrorX">Odbicie lustrzane X (Mirror)</label>
+            <input type="checkbox" id="mirrorX" />
+          </div>
+          <div class="row adv-only">
+            <label data-i18n="lblMirrorY">Odbicie lustrzane Y</label>
+            <input type="checkbox" id="mirrorY" />
+          </div>
+          <div class="row adv-only">
+            <label data-i18n="lblRot">Obrót</label>
+            <select id="rotation">
+              <option value="0">0°</option><option value="90">90°</option>
+              <option value="180">180°</option><option value="270">270°</option>
+            </select>
+          </div>
+
+          <div class="param adv-only" style="margin-top:10px;">
+            <div class="param-top">
+              <label data-i18n="lblFrameH">Wysokość ramki</label>
+              <div class="num-box"><input type="number" id="ledgeHeight" value="1.20" step="0.05" min="0.4" max="3.5" /><span>mm</span></div>
+            </div>
+            <input type="range" class="p-slider" id="slider_ledgeHeight" />
+            <div class="ticks" id="ticks_ledgeHeight"></div>
+          </div>
+
+          <div class="param adv-only">
+            <div class="param-top">
+              <label data-i18n="lblClear">Luz na PCB</label>
+              <div class="num-box"><input type="number" id="pcbClearance" value="0.20" step="0.01" min="0" max="1.0" /><span>mm</span></div>
+            </div>
+            <input type="range" class="p-slider" id="slider_pcbClearance" />
+            <div class="ticks" id="ticks_pcbClearance"></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="section-title" data-i18n="secExclude">Wykluczanie padów (Klik w 3D)</div>
+          <div class="row">
+            <label data-i18n="lblExcludeMode">Klikaj otwory, aby zaślepić</label>
+            <input type="checkbox" id="excludeMode" checked />
+          </div>
+          <div class="row">
+            <span id="excludedCountText" style="font-size:12px;color:var(--text-dim);">Wykluczone: 0</span>
+            <button id="btnResetExcluded" class="danger" style="padding:4px 8px;font-size:11px;" data-i18n="btnResetExcl">Przywróć</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZAKŁADKA 3: EKSPORT -->
+      <div class="tab-pane" id="pane-export">
+        <div class="box">
+          <div class="section-title" data-i18n="secBambu">Gotowy plik dla Bambu Studio</div>
+          <button class="cta" id="btnExport3MF" data-i18n="btn3MF">Pobierz .3MF (Bambu Studio)</button>
+          <div class="hint" data-i18n="hint3MF">Zawiera wyśrodkowany model oraz ustawienia: Arachne, 100% wypełnienia, 0 mm kompensacji stopy słonia i dobraną wysokość warstwy.</div>
+        </div>
+
+        <div class="box adv-only">
+          <div class="section-title" data-i18n="secBambuAdv">Nadpisania .3MF (Tryb Pro)</div>
+          <div class="row">
+            <label data-i18n="lblWallGen">Generator ścian</label>
+            <select id="bambuWallGen">
+              <option value="arachne">Arachne</option>
+              <option value="classic">Classic</option>
+            </select>
+          </div>
+          <div class="row">
+            <label data-i18n="lblLayerH">Wysokość warstwy (0 = auto)</label>
+            <input type="number" class="std-num" id="bambuLayerH" value="0" step="0.02" min="0" max="0.24" style="width:74px;" />
+          </div>
+          <div class="row">
+            <label data-i18n="lblFirstSpeed">Prędkość 1. warstwy (mm/s)</label>
+            <input type="number" class="std-num" id="bambuFirstSpeed" value="25" step="5" min="10" max="80" style="width:74px;" />
+          </div>
+          <div class="row">
+            <label data-i18n="lblEleph">Stopa słonia (mm)</label>
+            <input type="number" class="std-num" id="bambuEleph" value="0" step="0.02" min="0" max="0.2" style="width:74px;" />
+          </div>
+          <div class="row">
+            <label data-i18n="lblPackStep">Krok pakietu testowego (±mm)</label>
+            <input type="number" class="std-num" id="packStep" value="0.04" step="0.01" min="0.01" max="0.15" style="width:74px;" />
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="section-title" data-i18n="secStl">Uniwersalne pliki STL</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="secondary" id="btnExportSTL" data-i18n="btnSTL">Pobierz pojedynczy STL</button>
+            <button class="secondary" id="btnExportPack" data-i18n="btnPack">Pakiet testowy (3× STL z różnym XY)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bar">
       <label class="switch-wrap">
-        <span data-i18n="lblAdvMode">Zaawansowany</span>
         <input type="checkbox" id="advToggle" class="switch-input" />
         <span class="switch"></span>
+        <span data-i18n="lblAdvMode">Tryb zaawansowany</span>
       </label>
-    </div>
-    <div class="pill" style="padding:4px 6px;gap:4px;">
-      <button id="langPL" class="active" style="padding:4px 8px;">PL</button>
-      <button id="langEN" style="padding:4px 8px;">EN</button>
-    </div>
-  </div>
-
-  <!-- Floating HUD -->
-  <div id="hud">...</div>
-
-  <!-- Floating Left Inspector -->
-  <aside>
-    <div class="brand-bar">
-      <div class="brand-title">
-        <span class="brand-dot"></span>
-        <h1>SMD Stencil Studio</h1>
-      </div>
-      <span style="font-size:10.5px;color:var(--muted);font-family:monospace;">2026</span>
-    </div>
-
-    <!-- 1. Pliki -->
-    <div class="card">
-      <h2 data-i18n="secFiles">1. Pliki Gerber (KiCad / EasyEDA)</h2>
-      <div class="drop-mini" id="dropZone">
-        <div data-i18n="dropMini">Przeciągnij i upuść pliki Gerber tutaj<br>lub kliknij, aby wybrać</div>
-        <div class="file-status" id="fileStatus"></div>
-      </div>
-      <div class="adv-only" style="margin-bottom:6px;">
-        <label style="font-size:11px;color:var(--muted);" data-i18n="lblPaste">Warstwa pasty (F_Paste / B_Paste):</label>
-        <input type="file" id="pasteFile" accept=".gbr,.gtp,.gbp,.txt" />
-      </div>
-      <div class="adv-only" style="margin-bottom:8px;">
-        <label style="font-size:11px;color:var(--muted);" data-i18n="lblEdge">Obrys PCB (Edge_Cuts):</label>
-        <input type="file" id="edgeFile" accept=".gbr,.gm1,.gko,.txt" />
-      </div>
-      <button id="btnDemo" style="width:100%;" data-i18n="btnDemo">Załaduj przykładową płytkę (Demo)</button>
-    </div>
-
-    <!-- 2. Stół i Dysza -->
-    <div class="card">
-      <h2 data-i18n="secBed">2. Stół Bambu Lab i dysza</h2>
-      <div class="row">
-        <label data-i18n="lblBedPreset">Model drukarki</label>
-        <select id="bedPreset">
-          <option value="180x180">A1 Mini (180×180)</option>
-          <option value="256x256">A1 / P1S / X1C (256×256)</option>
-          <option value="350x320">H2D (350×320)</option>
-          <option value="none" data-i18n="optBedNone">Ukryj stół</option>
-        </select>
-      </div>
-      <div class="btn-group">
-        <button id="preset02" class="active" data-i18n="pre02">Dysza 0.2 mm</button>
-        <button id="preset04" data-i18n="pre04">Dysza 0.4 mm</button>
-        <button id="presetThin" data-i18n="preThin">Ultra 0.08 mm</button>
-      </div>
-    </div>
-
-    <!-- 3. Parametry stencila (Suwaki 5-opcjowe + dokładne pola u góry) -->
-    <div class="card">
-      <h2>
-        <span data-i18n="secParams">3. Parametry stencila</span>
-        <span class="badge-pro adv-only">PRO</span>
-      </h2>
-
-      <div class="param-block" data-slider="thickness">
-        <div class="param-head">
-          <label data-i18n="lblThick">Grubość blachy</label>
-          <div class="num-wrap"><input type="number" id="thickness" value="0.12" step="0.01" min="0.06" max="0.50" /><span>mm</span></div>
-        </div>
-        <input type="range" class="p-slider" id="slider_thickness" />
-        <div class="ticks" id="ticks_thickness"></div>
-      </div>
-
-      <div class="param-block" data-slider="padComp">
-        <div class="param-head">
-          <label data-i18n="lblExpand">Poszerzenie padów XY</label>
-          <div class="num-wrap"><input type="number" id="padComp" value="0.04" step="0.005" min="-0.30" max="0.40" /><span>mm</span></div>
-        </div>
-        <input type="range" class="p-slider" id="slider_padComp" />
-        <div class="ticks" id="ticks_padComp"></div>
-      </div>
-
-      <div class="param-block" data-slider="margin">
-        <div class="param-head">
-          <label data-i18n="lblMargin">Margines wokół PCB</label>
-          <div class="num-wrap"><input type="number" id="margin" value="10" step="0.5" min="2" max="40" /><span>mm</span></div>
-        </div>
-        <input type="range" class="p-slider" id="slider_margin" />
-        <div class="ticks" id="ticks_margin"></div>
-      </div>
-
-      <!-- Zaawansowana geometria padów i orientacja -->
-      <div class="param-block adv-only" data-slider="padScale">
-        <div class="param-head">
-          <label data-i18n="lblScale">Skala padów</label>
-          <div class="num-wrap"><input type="number" id="padScale" value="100" step="1" min="60" max="150" /><span>%</span></div>
-        </div>
-        <input type="range" class="p-slider" id="slider_padScale" />
-        <div class="ticks" id="ticks_padScale"></div>
-      </div>
-
-      <div class="row">
-        <label data-i18n="lblMirrorX">Odbicie lustrzane X (Mirror)</label>
-        <input type="checkbox" id="mirrorX" />
-      </div>
-      <div class="row adv-only">
-        <label data-i18n="lblMirrorY">Odbicie lustrzane Y</label>
-        <input type="checkbox" id="mirrorY" />
-      </div>
-      <div class="row adv-only">
-        <label data-i18n="lblRot">Obrót</label>
-        <select id="rotation">
-          <option value="0">0°</option>
-          <option value="90">90°</option>
-          <option value="180">180°</option>
-          <option value="270">270°</option>
-        </select>
-      </div>
-      <div class="row adv-only">
-        <label data-i18n="lblSegs">Rozdzielczość łuków (segmenty)</label>
-        <input type="number" class="std-num" id="curveSegs" value="16" min="8" max="48" step="4" style="width:78px;" />
-      </div>
-    </div>
-
-    <!-- 4. Wykluczanie padów -->
-    <div class="card">
-      <h2 data-i18n="secExclude">4. Wykluczanie padów (Klik w 3D)</h2>
-      <div class="row">
-        <label data-i18n="lblExcludeMode">Tryb klikania padów</label>
-        <input type="checkbox" id="excludeMode" checked />
-      </div>
-      <div class="row">
-        <span id="excludedCountText" style="font-size:11.5px;color:var(--muted);">Wykluczone: 0</span>
-        <button id="btnResetExcluded" class="danger" data-i18n="btnResetExcl">Przywróć wszystkie</button>
-      </div>
-    </div>
-
-    <!-- 5. Typ nakładki -->
-    <div class="card">
-      <h2 data-i18n="secFrame">5. Typ nakładki (Jig / Ramka)</h2>
-      <div class="row">
-        <label data-i18n="lblFrameType">Typ nakładki</label>
-        <select id="ledgeType">
-          <option value="lshape" data-i18n="optL">Narożnikowa L (2 boki)</option>
-          <option value="ushape" data-i18n="optU">Wsuwana U (3 boki)</option>
-          <option value="full" data-i18n="optFull">Pełna ramka (4 boki)</option>
-          <option value="full_notch" data-i18n="optFullNotch">Pełna + wycięcie na palec</option>
-          <option value="tabs" data-i18n="optTabs">Płaska + uchwyty boczne</option>
-          <option value="none" data-i18n="optNone">Płaski arkusz (bez ramki)</option>
-        </select>
-      </div>
-
-      <div class="param-block" data-slider="ledgeHeight">
-        <div class="param-head">
-          <label data-i18n="lblFrameH">Wysokość ramki / uchwytu</label>
-          <div class="num-wrap"><input type="number" id="ledgeHeight" value="1.20" step="0.05" min="0.4" max="3.5" /><span>mm</span></div>
-        </div>
-        <input type="range" class="p-slider" id="slider_ledgeHeight" />
-        <div class="ticks" id="ticks_ledgeHeight"></div>
-      </div>
-
-      <div class="param-block" data-slider="pcbClearance">
-        <div class="param-head">
-          <label data-i18n="lblClear">Luz na PCB (Clearance)</label>
-          <div class="num-wrap"><input type="number" id="pcbClearance" value="0.20" step="0.01" min="0" max="1.0" /><span>mm</span></div>
-        </div>
-        <input type="range" class="p-slider" id="slider_pcbClearance" />
-        <div class="ticks" id="ticks_pcbClearance"></div>
-      </div>
-    </div>
-
-    <!-- 6. Zaawansowane ustawienia Bambu Studio (.3MF) -->
-    <div class="card adv-only">
-      <h2>
-        <span data-i18n="secBambuAdv">6. Nadpisania Bambu Studio (.3MF)</span>
-        <span class="badge-pro">PRO</span>
-      </h2>
-      <div class="row">
-        <label data-i18n="lblWallGen">Generator ścian</label>
-        <select id="bambuWallGen">
-          <option value="arachne">Arachne (Zalecane)</option>
-          <option value="classic">Classic</option>
-        </select>
-      </div>
-      <div class="row">
-        <label data-i18n="lblLayerH">Wysokość warstwy (0 = auto)</label>
-        <input type="number" class="std-num" id="bambuLayerH" value="0" step="0.02" min="0" max="0.24" style="width:78px;" />
-      </div>
-      <div class="row">
-        <label data-i18n="lblFirstSpeed">Prędkość 1. warstwy (mm/s)</label>
-        <input type="number" class="std-num" id="bambuFirstSpeed" value="25" step="5" min="10" max="80" style="width:78px;" />
-      </div>
-      <div class="row">
-        <label data-i18n="lblEleph">Kompensacja stopy słonia (mm)</label>
-        <input type="number" class="std-num" id="bambuEleph" value="0" step="0.02" min="0" max="0.2" style="width:78px;" />
-      </div>
-      <div class="row">
-        <label data-i18n="lblPackStep">Krok pakietu testowego (±mm)</label>
-        <input type="number" class="std-num" id="packStep" value="0.04" step="0.01" min="0.01" max="0.15" style="width:78px;" />
-      </div>
-    </div>
-
-    <!-- Eksport -->
-    <button class="bambu" id="btnExport3MF" data-i18n="btn3MF">Pobierz .3MF dla Bambu Studio</button>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-      <button class="primary" id="btnExportSTL" data-i18n="btnSTL">Pobierz STL</button>
-      <button id="btnExportPack" data-i18n="btnPack">Pakiet 3× STL</button>
+      <span style="font-size:11px;color:var(--text-dim);font-family:monospace;">2026</span>
     </div>
   </aside>
 
-  <!-- Floating Bottom Camera Dock -->
-  <div id="cam-dock">
-    <button id="camTop" data-i18n="camTop">Góra (Z+)</button>
-    <button id="camBottom" data-i18n="camBottom">Spód (Z-)</button>
-    <button id="camIso" data-i18n="camIso">3D Iso</button>
-    <button id="camFit" data-i18n="camFit">Dopasuj</button>
-  </div>
+  <main>
+    <div id="viewport"></div>
+    <div id="hud">...</div>
+    <div id="engine-pill">Three.js r187</div>
+    <div id="cam-dock">
+      <button id="camTop" data-i18n="camTop">Góra</button>
+      <button id="camBottom" data-i18n="camBottom">Spód</button>
+      <button id="camIso" data-i18n="camIso">3D</button>
+      <button id="camFit" data-i18n="camFit">Dopasuj</button>
+    </div>
+  </main>
 
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // --- KONFIGURACJA SUWAKÓW (5 DOMYŚLNYCH OPCJI + PRECYZYJNY ZAKRES PRO) ---
+    // --- KONFIGURACJA SUWAKÓW (5 OPCJI + PRECYZYJNY ZAKRES PRO) ---
     const SLIDERS = {
-      thickness:    { presets: [0.08, 0.10, 0.12, 0.16, 0.20], min: 0.06, max: 0.50, step: 0.01, decimals: 2 },
-      padComp:      { presets: [-0.04, 0.00, 0.04, 0.08, 0.12], min: -0.30, max: 0.40, step: 0.005, decimals: 3 },
-      margin:       { presets: [5, 8, 10, 15, 20], min: 2, max: 40, step: 0.5, decimals: 1 },
-      padScale:     { presets: [85, 95, 100, 105, 115], min: 60, max: 150, step: 1, decimals: 0 },
-      ledgeHeight:  { presets: [0.8, 1.0, 1.2, 1.6, 2.0], min: 0.4, max: 3.5, step: 0.05, decimals: 2 },
-      pcbClearance: { presets: [0.10, 0.15, 0.20, 0.30, 0.40], min: 0.00, max: 1.00, step: 0.01, decimals: 2 }
+      thickness:    { presets: [0.08, 0.10, 0.12, 0.16, 0.20], min: 0.06, max: 0.50, step: 0.01 },
+      padComp:      { presets: [-0.04, 0.00, 0.04, 0.08, 0.12], min: -0.30, max: 0.40, step: 0.005 },
+      margin:       { presets: [5, 8, 10, 15, 20], min: 2, max: 40, step: 0.5 },
+      padScale:     { presets: [85, 95, 100, 105, 115], min: 60, max: 150, step: 1 },
+      ledgeHeight:  { presets: [0.8, 1.0, 1.2, 1.6, 2.0], min: 0.4, max: 3.5, step: 0.05 },
+      pcbClearance: { presets: [0.10, 0.15, 0.20, 0.30, 0.40], min: 0.00, max: 1.00, step: 0.01 }
     };
 
     let advancedMode = false;
@@ -474,128 +456,144 @@
 
     const I18N = {
       pl: {
-        dropOverlayTitle: 'Upuść pliki Gerber tutaj',
-        dropOverlaySub: 'F.Paste / B.Paste (.gtp, .gbp, .gbr) oraz Edge_Cuts (.gm1, .gko)',
-        lblAdvMode: 'Zaawansowany',
-        secFiles: '1. Pliki Gerber (KiCad / EasyEDA)',
-        dropMini: 'Przeciągnij i upuść pliki Gerber tutaj<br>lub kliknij, aby wybrać',
-        lblPaste: 'Warstwa pasty (F_Paste / B_Paste):',
-        lblEdge: 'Obrys PCB (Edge_Cuts):',
+        dropOverlayTitle: 'Upuść pliki Gerber lub SVG tutaj',
+        dropOverlaySub: 'F_Paste / B_Paste oraz Edge_Cuts (.gbr, .gtp, .gbp, .gm1, .svg)',
+        tabFiles: '1. Pliki',
+        tabSetup: '2. Ustawienia',
+        tabExport: '3. Eksport',
+        dropTitle: 'Przeciągnij pliki Gerber lub SVG',
+        dropSub: 'Obsługuje .gbr, .gtp, .gbp, .gm1, .gko oraz .svg<br>(kliknij, aby wybrać z dysku)',
         btnDemo: 'Załaduj przykładową płytkę (Demo)',
-        secBed: '2. Stół Bambu Lab i dysza',
-        lblBedPreset: 'Model drukarki',
+        secBed: 'Stół roboczy (Bambu Lab)',
+        lblBed: 'Drukarka',
         optBedNone: 'Ukryj stół',
-        pre02: 'Dysza 0.2 mm',
-        pre04: 'Dysza 0.4 mm',
-        preThin: 'Ultra 0.08 mm',
-        secParams: '3. Parametry stencila',
-        lblThick: 'Grubość blachy',
+        hintFiles: 'Możesz wrzucić naraz warstwę pasty (F_Paste / B_Paste) i obrys płytki (Edge_Cuts).',
+        secNozzle: 'Preset dyszy',
+        preThin: '0.08 Ultra',
+        secDims: 'Wymiary szablonu',
+        lblThick: 'Grubość szablonu',
         lblExpand: 'Poszerzenie padów XY',
         lblMargin: 'Margines wokół PCB',
         lblScale: 'Skala padów',
-        lblMirrorX: 'Odbicie lustrzane X (Mirror)',
-        lblMirrorY: 'Odbicie lustrzane Y',
-        lblRot: 'Obrót',
-        lblSegs: 'Rozdzielczość łuków (segmenty)',
-        secExclude: '4. Wykluczanie padów (Klik w 3D)',
-        lblExcludeMode: 'Tryb klikania padów',
-        btnResetExcl: 'Przywróć wszystkie',
-        secFrame: '5. Typ nakładki (Jig / Ramka)',
-        lblFrameType: 'Typ nakładki',
+        secFrame: 'Nakładka i orientacja',
+        lblFrameType: 'Typ ramki',
         optL: 'Narożnikowa L (2 boki)',
         optU: 'Wsuwana U (3 boki)',
         optFull: 'Pełna ramka (4 boki)',
         optFullNotch: 'Pełna + wycięcie na palec',
-        optTabs: 'Płaska + uchwyty boczne',
-        optNone: 'Płaski arkusz (bez ramki)',
-        lblFrameH: 'Wysokość ramki / uchwytu',
-        lblClear: 'Luz na PCB (Clearance)',
-        secBambuAdv: '6. Nadpisania Bambu Studio (.3MF)',
+        optTabs: 'Płaski + uchwyty boczne',
+        optNone: 'Płaski arkusz',
+        lblMirrorX: 'Odbicie lustrzane X (Mirror)',
+        lblMirrorY: 'Odbicie lustrzane Y',
+        lblRot: 'Obrót',
+        lblFrameH: 'Wysokość ramki',
+        lblClear: 'Luz na PCB',
+        secExclude: 'Wykluczanie padów (Klik w 3D)',
+        lblExcludeMode: 'Klikaj otwory, aby zaślepić',
+        btnResetExcl: 'Przywróć',
+        secBambu: 'Gotowy plik dla Bambu Studio',
+        btn3MF: 'Pobierz .3MF (Bambu Studio)',
+        hint3MF: 'Zawiera wyśrodkowany model oraz ustawienia: Arachne, 100% wypełnienia, 0 mm kompensacji stopy słonia i dobraną wysokość warstwy.',
+        secBambuAdv: 'Nadpisania .3MF (Tryb Pro)',
         lblWallGen: 'Generator ścian',
         lblLayerH: 'Wysokość warstwy (0 = auto)',
         lblFirstSpeed: 'Prędkość 1. warstwy (mm/s)',
-        lblEleph: 'Kompensacja stopy słonia (mm)',
+        lblEleph: 'Stopa słonia (mm)',
         lblPackStep: 'Krok pakietu testowego (±mm)',
-        btn3MF: 'Pobierz .3MF dla Bambu Studio',
-        btnSTL: 'Pobierz STL',
-        btnPack: 'Pakiet 3× STL',
-        camTop: 'Góra (Z+)',
-        camBottom: 'Spód (Z-)',
-        camIso: '3D Iso',
+        secStl: 'Uniwersalne pliki STL',
+        btnSTL: 'Pobierz pojedynczy STL',
+        btnPack: 'Pakiet testowy (3× STL z różnym XY)',
+        lblAdvMode: 'Tryb zaawansowany',
+        camTop: 'Góra',
+        camBottom: 'Spód',
+        camIso: '3D',
         camFit: 'Dopasuj',
-        hudEmpty: 'Upuść pliki Gerber na okno lub kliknij „Załaduj przykładową płytkę”.',
-        hudPads: 'Aktywne pady',
+        hudEmpty: 'Przeciągnij plik Gerber lub SVG, albo kliknij „Załaduj przykładową płytkę”.',
+        hudPads: 'Pady',
         hudMin: 'Min. otwór',
-        hudStencil: 'Stencil',
+        hudStencil: 'Szablon',
         hudThick: 'Grubość',
         hudWarnNozzle: 'Najmniejszy otwór na granicy dla dyszy',
-        hudWarnBed: 'Stencil nie mieści się na wybranym stole!',
+        hudWarnBed: 'Szablon nie mieści się na wybranym stole!',
         exclCount: 'Wykluczone',
-        alertNoData: 'Najpierw wczytaj plik Gerber lub Demo.'
+        alertNoData: 'Najpierw wczytaj plik Gerber/SVG lub załaduj Demo.'
       },
       en: {
-        dropOverlayTitle: 'Drop Gerber files here',
-        dropOverlaySub: 'F.Paste / B.Paste (.gtp, .gbp, .gbr) and Edge_Cuts (.gm1, .gko)',
-        lblAdvMode: 'Advanced',
-        secFiles: '1. Gerber Files (KiCad / EasyEDA)',
-        dropMini: 'Drag & drop Gerber files here<br>or click to browse',
-        lblPaste: 'Paste layer (F_Paste / B_Paste):',
-        lblEdge: 'Board outline (Edge_Cuts):',
+        dropOverlayTitle: 'Drop Gerber or SVG files here',
+        dropOverlaySub: 'F_Paste / B_Paste and Edge_Cuts (.gbr, .gtp, .gbp, .gm1, .svg)',
+        tabFiles: '1. Files',
+        tabSetup: '2. Setup',
+        tabExport: '3. Export',
+        dropTitle: 'Drag & drop Gerber or SVG files',
+        dropSub: 'Supports .gbr, .gtp, .gbp, .gm1, .gko and .svg<br>(click to browse)',
         btnDemo: 'Load Sample PCB (Demo)',
-        secBed: '2. Bambu Lab Bed & Nozzle',
-        lblBedPreset: 'Printer model',
+        secBed: 'Build Plate (Bambu Lab)',
+        lblBed: 'Printer',
         optBedNone: 'Hide build plate',
-        pre02: '0.2 mm Nozzle',
-        pre04: '0.4 mm Nozzle',
-        preThin: 'Ultra 0.08 mm',
-        secParams: '3. Stencil Parameters',
-        lblThick: 'Sheet thickness',
+        hintFiles: 'You can drop both the paste layer (F_Paste / B_Paste) and board outline (Edge_Cuts) at once.',
+        secNozzle: 'Nozzle Preset',
+        preThin: '0.08 Ultra',
+        secDims: 'Stencil Dimensions',
+        lblThick: 'Stencil thickness',
         lblExpand: 'Pad XY expand',
         lblMargin: 'PCB margin',
         lblScale: 'Pad scale',
-        lblMirrorX: 'Mirror X',
-        lblMirrorY: 'Mirror Y',
-        lblRot: 'Rotation',
-        lblSegs: 'Arc resolution (segments)',
-        secExclude: '4. Exclude Pads (Click in 3D)',
-        lblExcludeMode: 'Click-to-exclude mode',
-        btnResetExcl: 'Restore all',
-        secFrame: '5. Stencil Frame (Jig)',
+        secFrame: 'Frame & Orientation',
         lblFrameType: 'Frame style',
         optL: 'L-Corner (2 sides)',
         optU: 'U-Slide (3 sides)',
         optFull: 'Full Frame (4 sides)',
         optFullNotch: 'Full + Finger Cutout',
-        optTabs: 'Flat + Lift Tabs',
-        optNone: 'Flat Sheet (No frame)',
-        lblFrameH: 'Frame / Tab height',
-        lblClear: 'PCB Clearance',
-        secBambuAdv: '6. Bambu Studio Overrides (.3MF)',
+        optTabs: 'Flat + Side Tabs',
+        optNone: 'Flat Sheet',
+        lblMirrorX: 'Mirror X',
+        lblMirrorY: 'Mirror Y',
+        lblRot: 'Rotation',
+        lblFrameH: 'Frame height',
+        lblClear: 'PCB clearance',
+        secExclude: 'Exclude Pads (Click in 3D)',
+        lblExcludeMode: 'Click apertures to close them',
+        btnResetExcl: 'Restore',
+        secBambu: 'Ready-to-Print for Bambu Studio',
+        btn3MF: 'Download .3MF (Bambu Studio)',
+        hint3MF: 'Includes centered model and settings: Arachne walls, 100% infill, 0 mm elephant foot compensation, and matched layer height.',
+        secBambuAdv: '.3MF Overrides (Pro Mode)',
         lblWallGen: 'Wall generator',
         lblLayerH: 'Layer height (0 = auto)',
         lblFirstSpeed: 'Initial layer speed (mm/s)',
         lblEleph: 'Elephant foot comp. (mm)',
         lblPackStep: 'Test pack step (±mm)',
-        btn3MF: 'Download .3MF for Bambu Studio',
-        btnSTL: 'Download STL',
-        btnPack: '3× STL Pack',
-        camTop: 'Top (Z+)',
-        camBottom: 'Bottom (Z-)',
-        camIso: '3D Iso',
-        camFit: 'Fit View',
-        hudEmpty: 'Drop Gerber files onto the window or click "Load Sample PCB".',
-        hudPads: 'Active pads',
+        secStl: 'Standard STL Files',
+        btnSTL: 'Download Single STL',
+        btnPack: 'Test Pack (3× STL with XY offsets)',
+        lblAdvMode: 'Advanced mode',
+        camTop: 'Top',
+        camBottom: 'Bottom',
+        camIso: '3D',
+        camFit: 'Fit',
+        hudEmpty: 'Drag & drop a Gerber or SVG file, or click "Load Sample PCB".',
+        hudPads: 'Pads',
         hudMin: 'Min aperture',
         hudStencil: 'Stencil',
         hudThick: 'Thickness',
         hudWarnNozzle: 'Smallest aperture near limit for nozzle',
         hudWarnBed: 'Stencil exceeds selected build plate!',
         exclCount: 'Excluded',
-        alertNoData: 'Please load a Gerber file or Demo first.'
+        alertNoData: 'Please load a Gerber/SVG file or Demo first.'
       }
     };
 
-    // --- INICJALIZACJA SUWAKÓW 5-STOPNIOWYCH I PRO ---
+    // --- ZAKŁADKI ---
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+      };
+    });
+
+    // --- SUWAKI ---
     function formatTick(val, key) {
       if (key === 'padComp' && val > 0) return '+' + val.toFixed(2);
       if (key === 'padScale') return val + '%';
@@ -611,22 +609,13 @@
 
       const val = parseFloat(numEl.value);
       if (advancedMode) {
-        sliderEl.min = cfg.min;
-        sliderEl.max = cfg.max;
-        sliderEl.step = cfg.step;
-        sliderEl.value = val;
+        sliderEl.min = cfg.min; sliderEl.max = cfg.max; sliderEl.step = cfg.step; sliderEl.value = val;
       } else {
-        sliderEl.min = 0;
-        sliderEl.max = cfg.presets.length - 1;
-        sliderEl.step = 1;
+        sliderEl.min = 0; sliderEl.max = cfg.presets.length - 1; sliderEl.step = 1;
         let bestIdx = 0, bestDiff = Infinity;
-        cfg.presets.forEach((p, i) => {
-          const d = Math.abs(p - val);
-          if (d < bestDiff) { bestDiff = d; bestIdx = i; }
-        });
+        cfg.presets.forEach((p, i) => { const d = Math.abs(p - val); if (d < bestDiff) { bestDiff = d; bestIdx = i; } });
         sliderEl.value = bestIdx;
       }
-
       if (ticksEl) {
         Array.from(ticksEl.children).forEach((btn, i) => {
           btn.classList.toggle('active', Math.abs(cfg.presets[i] - val) < 0.001);
@@ -652,27 +641,18 @@
         ticksEl.innerHTML = '';
         cfg.presets.forEach((presetVal) => {
           const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'tick-btn';
+          btn.type = 'button'; btn.className = 'tick-btn';
           btn.textContent = formatTick(presetVal, key);
           btn.onclick = () => setParamValue(key, presetVal);
           ticksEl.appendChild(btn);
         });
 
         sliderEl.addEventListener('input', () => {
-          const nextVal = advancedMode
-            ? parseFloat(sliderEl.value)
-            : cfg.presets[parseInt(sliderEl.value, 10)];
-          numEl.value = nextVal;
+          numEl.value = advancedMode ? parseFloat(sliderEl.value) : cfg.presets[parseInt(sliderEl.value, 10)];
           syncSliderVisual(key);
           rebuildStencil();
         });
-
-        numEl.addEventListener('input', () => {
-          syncSliderVisual(key);
-          rebuildStencil();
-        });
-
+        numEl.addEventListener('input', () => { syncSliderVisual(key); rebuildStencil(); });
         syncSliderVisual(key);
       });
     }
@@ -694,72 +674,59 @@
       updateExcludedLabel();
       rebuildStencil();
     }
-
     document.getElementById('langPL').onclick = () => { lang = 'pl'; applyLang(); };
     document.getElementById('langEN').onclick = () => { lang = 'en'; applyLang(); };
 
-    // --- THREE.JS r187 + WebGPURenderer (z automatycznym fallbackiem WebGL2) ---
+    // --- THREE.JS r187 + WebGPURenderer ---
     const container = document.getElementById('viewport');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x090b0f);
+    scene.background = new THREE.Color(0x0e1014);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 3000);
-    camera.position.set(25, -110, 120);
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 3000);
+    camera.position.set(0, -100, 115);
     camera.up.set(0, 0, 1);
 
     const renderer = new THREE.WebGPURenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
     await renderer.init();
-    const isWebGPU = renderer.backend?.isWebGPUBackend;
-    document.getElementById('engineBadge').textContent = `Three.js r187 · ${isWebGPU ? 'WebGPU' : 'WebGL2'}`;
+    document.getElementById('engine-pill').textContent = `Three.js r187 · ${renderer.backend?.isWebGPUBackend ? 'WebGPU' : 'WebGL2'}`;
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(-20, 0, 0);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.5);
-    dirLight1.position.set(90, -80, 160);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.45);
+    dirLight1.position.set(80, -80, 150);
     scene.add(dirLight1);
-
-    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.65);
-    dirLight2.position.set(-90, 90, -80);
+    const dirLight2 = new THREE.DirectionalLight(0x94a3b8, 0.6);
+    dirLight2.position.set(-80, 80, -80);
     scene.add(dirLight2);
     scene.add(new THREE.AmbientLight(0xffffff, 0.45));
 
-    const bedGroup = new THREE.Group();
-    const stencilGroup = new THREE.Group();
-    const padHitGroup = new THREE.Group();
+    const bedGroup = new THREE.Group(), stencilGroup = new THREE.Group(), padHitGroup = new THREE.Group();
     scene.add(bedGroup, stencilGroup, padHitGroup);
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(container.clientWidth, container.clientHeight);
     });
 
-    renderer.setAnimationLoop(() => {
-      controls.update();
-      renderer.render(scene, camera);
-    });
+    renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
 
     // --- STAN APLIKACJI ---
-    let parsedPads = [];
-    let excludedPads = new Set();
-    let parsedBoardBounds = null;
-    let currentNozzle = 0.2;
-    let loadedPasteName = '';
-    let loadedEdgeName = '';
+    let parsedPads = [], excludedPads = new Set(), parsedBoardBounds = null;
+    let currentNozzle = 0.2, loadedPasteName = '', loadedEdgeName = '';
     let lastStencilDims = { w: 60, h: 40 };
 
-    function updateFileStatus() {
-      const parts = [];
-      if (loadedPasteName) parts.push(`Paste: ${loadedPasteName}`);
-      if (loadedEdgeName) parts.push(`Edge: ${loadedEdgeName}`);
-      document.getElementById('fileStatus').textContent = parts.join(' | ');
+    function updateFileChips() {
+      const box = document.getElementById('fileChips');
+      box.innerHTML = '';
+      if (loadedPasteName) box.innerHTML += `<div class="chip"><span>Paste: ${loadedPasteName}</span></div>`;
+      if (loadedEdgeName) box.innerHTML += `<div class="chip"><span>Edge: ${loadedEdgeName}</span></div>`;
     }
 
     function updateExcludedLabel() {
@@ -775,7 +742,7 @@
       }
     }
 
-    // --- PODGLĄD STOŁU BAMBU LAB ---
+    // --- STÓŁ BAMBU LAB ---
     function getBedSize() {
       const val = document.getElementById('bedPreset').value;
       if (val === 'none') return null;
@@ -790,34 +757,183 @@
 
       const plane = new THREE.Mesh(
         new THREE.PlaneGeometry(bed.w, bed.h),
-        new THREE.MeshBasicMaterial({ color: 0x11151d, side: THREE.DoubleSide })
+        new THREE.MeshBasicMaterial({ color: 0x14171e, side: THREE.DoubleSide })
       );
       plane.position.z = -0.09;
       bedGroup.add(plane);
 
       const pts = [];
-      for (let x = -bed.w / 2; x <= bed.w / 2 + 0.01; x += 10) {
-        pts.push(new THREE.Vector3(x, -bed.h / 2, -0.05), new THREE.Vector3(x, bed.h / 2, -0.05));
-      }
-      for (let y = -bed.h / 2; y <= bed.h / 2 + 0.01; y += 10) {
-        pts.push(new THREE.Vector3(-bed.w / 2, y, -0.05), new THREE.Vector3(bed.w / 2, y, -0.05));
-      }
-      bedGroup.add(new THREE.LineSegments(
-        new THREE.BufferGeometry().setFromPoints(pts),
-        new THREE.LineBasicMaterial({ color: 0x1e2533 })
-      ));
+      for (let x = -bed.w / 2; x <= bed.w / 2 + 0.01; x += 10) pts.push(new THREE.Vector3(x, -bed.h / 2, -0.05), new THREE.Vector3(x, bed.h / 2, -0.05));
+      for (let y = -bed.h / 2; y <= bed.h / 2 + 0.01; y += 10) pts.push(new THREE.Vector3(-bed.w / 2, y, -0.05), new THREE.Vector3(bed.w / 2, y, -0.05));
+      bedGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x222733 })));
 
-      const borderPts = [
-        new THREE.Vector3(-bed.w / 2, -bed.h / 2, -0.02),
-        new THREE.Vector3(bed.w / 2, -bed.h / 2, -0.02),
-        new THREE.Vector3(bed.w / 2, bed.h / 2, -0.02),
-        new THREE.Vector3(-bed.w / 2, bed.h / 2, -0.02),
+      const border = [
+        new THREE.Vector3(-bed.w / 2, -bed.h / 2, -0.02), new THREE.Vector3(bed.w / 2, -bed.h / 2, -0.02),
+        new THREE.Vector3(bed.w / 2, bed.h / 2, -0.02), new THREE.Vector3(-bed.w / 2, bed.h / 2, -0.02),
         new THREE.Vector3(-bed.w / 2, -bed.h / 2, -0.02)
       ];
-      bedGroup.add(new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(borderPts),
-        new THREE.LineBasicMaterial({ color: 0x00e599 })
-      ));
+      bedGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(border), new THREE.LineBasicMaterial({ color: 0x10b981 })));
+    }
+
+    // --- PARSER SVG (KiCad / EasyEDA) ---
+    function parseLengthMm(str) {
+      if (!str) return null;
+      const m = String(str).trim().match(/^([+-]?[\d.]+)\s*(mm|cm|in|px|pt)?$/i);
+      if (!m) return null;
+      const v = parseFloat(m[1]), u = (m[2] || 'px').toLowerCase();
+      if (u === 'mm') return v;
+      if (u === 'cm') return v * 10;
+      if (u === 'in') return v * 25.4;
+      if (u === 'pt') return v * 25.4 / 72;
+      return v * 25.4 / 96;
+    }
+
+    function parseSvgPathPoints(d, sx, sy) {
+      const tokens = d.match(/[a-zA-Z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g);
+      if (!tokens) return [];
+      const subpaths = [];
+      let cur = [], x = 0, y = 0, sx0 = 0, sy0 = 0, cmd = '', i = 0;
+      const num = () => parseFloat(tokens[i++]);
+
+      while (i < tokens.length) {
+        if (/^[a-zA-Z]$/.test(tokens[i])) cmd = tokens[i++];
+        if (cmd === 'M' || cmd === 'm') {
+          if (cur.length >= 2) subpaths.push(cur);
+          cur = [];
+          const nx = num(), ny = num();
+          x = cmd === 'm' ? x + nx : nx;
+          y = cmd === 'm' ? y + ny : ny;
+          sx0 = x; sy0 = y;
+          cur.push({ x: x * sx, y: -y * sy });
+          cmd = cmd === 'm' ? 'l' : 'L';
+        } else if (cmd === 'L' || cmd === 'l') {
+          const nx = num(), ny = num();
+          x = cmd === 'l' ? x + nx : nx; y = cmd === 'l' ? y + ny : ny;
+          cur.push({ x: x * sx, y: -y * sy });
+        } else if (cmd === 'H' || cmd === 'h') {
+          const nx = num(); x = cmd === 'h' ? x + nx : nx;
+          cur.push({ x: x * sx, y: -y * sy });
+        } else if (cmd === 'V' || cmd === 'v') {
+          const ny = num(); y = cmd === 'v' ? y + ny : ny;
+          cur.push({ x: x * sx, y: -y * sy });
+        } else if (cmd === 'C' || cmd === 'c') {
+          const x1 = num(), y1 = num(), x2 = num(), y2 = num(), x3 = num(), y3 = num();
+          const cx1 = cmd === 'c' ? x + x1 : x1, cy1 = cmd === 'c' ? y + y1 : y1;
+          const cx2 = cmd === 'c' ? x + x2 : x2, cy2 = cmd === 'c' ? y + y2 : y2;
+          const ex = cmd === 'c' ? x + x3 : x3, ey = cmd === 'c' ? y + y3 : y3;
+          for (let t = 0.25; t <= 1.001; t += 0.25) {
+            const mt = 1 - t;
+            const px = mt*mt*mt*x + 3*mt*mt*t*cx1 + 3*mt*t*t*cx2 + t*t*t*ex;
+            const py = mt*mt*mt*y + 3*mt*mt*t*cy1 + 3*mt*t*t*cy2 + t*t*t*ey;
+            cur.push({ x: px * sx, y: -py * sy });
+          }
+          x = ex; y = ey;
+        } else if (cmd === 'Q' || cmd === 'q') {
+          const x1 = num(), y1 = num(), x2 = num(), y2 = num();
+          const cx1 = cmd === 'q' ? x + x1 : x1, cy1 = cmd === 'q' ? y + y1 : y1;
+          const ex = cmd === 'q' ? x + x2 : x2, ey = cmd === 'q' ? y + y2 : y2;
+          for (let t = 0.34; t <= 1.01; t += 0.33) {
+            const mt = 1 - t;
+            cur.push({ x: (mt*mt*x + 2*mt*t*cx1 + t*t*ex) * sx, y: -(mt*mt*y + 2*mt*t*cy1 + t*t*ey) * sy });
+          }
+          x = ex; y = ey;
+        } else if (cmd === 'A' || cmd === 'a') {
+          num(); num(); num(); num(); num();
+          const ex = num(), ey = num();
+          x = cmd === 'a' ? x + ex : ex; y = cmd === 'a' ? y + ey : ey;
+          cur.push({ x: x * sx, y: -y * sy });
+        } else if (cmd === 'Z' || cmd === 'z') {
+          x = sx0; y = sy0;
+          if (cur.length >= 2) subpaths.push(cur);
+          cur = [];
+        } else {
+          i++;
+        }
+      }
+      if (cur.length >= 2) subpaths.push(cur);
+      return subpaths;
+    }
+
+    function parseSVG(text) {
+      const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+      const svg = doc.querySelector('svg');
+      if (!svg) return { pads: [], bounds: null };
+
+      let sx = 25.4 / 96, sy = 25.4 / 96;
+      const wMm = parseLengthMm(svg.getAttribute('width'));
+      const hMm = parseLengthMm(svg.getAttribute('height'));
+      const vb = svg.getAttribute('viewBox');
+      if (vb && wMm && hMm) {
+        const parts = vb.trim().split(/[\s,]+/).map(Number);
+        if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+          sx = wMm / parts[2];
+          sy = hMm / parts[3];
+        }
+      }
+
+      const pads = [], allPts = [];
+      const addPt = (x, y) => allPts.push({ x, y });
+
+      svg.querySelectorAll('rect').forEach(el => {
+        const x = parseFloat(el.getAttribute('x') || 0) * sx;
+        const y = parseFloat(el.getAttribute('y') || 0) * sy;
+        const w = parseFloat(el.getAttribute('width') || 0) * sx;
+        const h = parseFloat(el.getAttribute('height') || 0) * sy;
+        if (w <= 0 || h <= 0) return;
+        const cx = x + w / 2, cy = -(y + h / 2);
+        pads.push({ type: 'R', x: cx, y: cy, w, h });
+        addPt(cx - w / 2, cy - h / 2); addPt(cx + w / 2, cy + h / 2);
+      });
+
+      svg.querySelectorAll('circle').forEach(el => {
+        const cx = parseFloat(el.getAttribute('cx') || 0) * sx;
+        const cy = -parseFloat(el.getAttribute('cy') || 0) * sy;
+        const r = parseFloat(el.getAttribute('r') || 0) * sx;
+        if (r <= 0) return;
+        pads.push({ type: 'C', x: cx, y: cy, d: r * 2 });
+        addPt(cx - r, cy - r); addPt(cx + r, cy + r);
+      });
+
+      svg.querySelectorAll('ellipse').forEach(el => {
+        const cx = parseFloat(el.getAttribute('cx') || 0) * sx;
+        const cy = -parseFloat(el.getAttribute('cy') || 0) * sy;
+        const rx = parseFloat(el.getAttribute('rx') || 0) * sx;
+        const ry = parseFloat(el.getAttribute('ry') || 0) * sy;
+        if (rx <= 0 || ry <= 0) return;
+        pads.push({ type: 'O', x: cx, y: cy, w: rx * 2, h: ry * 2 });
+        addPt(cx - rx, cy - ry); addPt(cx + rx, cy + ry);
+      });
+
+      svg.querySelectorAll('polygon, polyline').forEach(el => {
+        const raw = (el.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+        const pts = [];
+        for (let i = 0; i + 1 < raw.length; i += 2) {
+          const p = { x: raw[i] * sx, y: -raw[i + 1] * sy };
+          pts.push(p); addPt(p.x, p.y);
+        }
+        if (pts.length >= 3) pads.push({ type: 'POLY', pts });
+      });
+
+      svg.querySelectorAll('path').forEach(el => {
+        const d = el.getAttribute('d');
+        if (!d) return;
+        const subpaths = parseSvgPathPoints(d, sx, sy);
+        for (const pts of subpaths) {
+          pts.forEach(p => addPt(p.x, p.y));
+          if (pts.length >= 3) pads.push({ type: 'POLY', pts });
+        }
+      });
+
+      let bounds = null;
+      if (allPts.length > 0) {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const p of allPts) {
+          if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+          if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+        }
+        bounds = { minX, maxX, minY, maxY };
+      }
+      return { pads, bounds };
     }
 
     // --- PARSER GERBER RS-274X ---
@@ -829,8 +945,7 @@
       const parseCoord = (str, dec) => {
         if (!str) return null;
         const sign = str.startsWith('-') ? -1 : 1;
-        const digits = str.replace(/^[+-]/, '');
-        return sign * (parseInt(digits, 10) / Math.pow(10, dec)) * unitScale;
+        return sign * (parseInt(str.replace(/^[+-]/, ''), 10) / Math.pow(10, dec)) * unitScale;
       };
 
       for (let raw of text.replace(/\r/g, '').split(/\n/)) {
@@ -870,8 +985,7 @@
           if (cmd === 'G37') {
             inRegion = false;
             if (regionPts.length >= 3) pads.push({ type: 'POLY', pts: regionPts });
-            regionPts = [];
-            continue;
+            regionPts = []; continue;
           }
           const apSel = cmd.match(/^(?:G54)?(D\d+)$/);
           if (apSel && parseInt(apSel[1].slice(1), 10) >= 10) { curAperture = apertures[apSel[1]] || null; continue; }
@@ -904,7 +1018,7 @@
     }
 
     // --- KONWERSJA PADA ---
-    function padToGeometryData(pad, comp, scale, cx, cy, mirrorX, mirrorY, rotRad, segs) {
+    function padToGeometryData(pad, comp, scale, cx, cy, mirrorX, mirrorY, rotRad) {
       const transform = (x, y) => {
         let dx = x - cx, dy = y - cy;
         if (mirrorX) dx = -dx;
@@ -918,8 +1032,8 @@
       if (pad.type === 'C') {
         const r = Math.max(0.05, (pad.d / 2) * scale + comp);
         minDim = r * 2;
-        for (let i = 0; i < segs; i++) {
-          const a = (i / segs) * Math.PI * 2;
+        for (let i = 0; i < 16; i++) {
+          const a = (i / 16) * Math.PI * 2;
           pts.push(transform(pad.x + Math.cos(a) * r, pad.y + Math.sin(a) * r));
         }
       } else if (pad.type === 'R' || pad.type === 'O') {
@@ -953,8 +1067,7 @@
 
       if (pts.length < 3) return null;
       const path = new THREE.Path(), shape = new THREE.Shape();
-      path.moveTo(pts[0][0], pts[0][1]);
-      shape.moveTo(pts[0][0], pts[0][1]);
+      path.moveTo(pts[0][0], pts[0][1]); shape.moveTo(pts[0][0], pts[0][1]);
       for (let i = 1; i < pts.length; i++) { path.lineTo(pts[i][0], pts[i][1]); shape.lineTo(pts[i][0], pts[i][1]); }
       path.closePath(); shape.closePath();
       return { path, shape, minDim };
@@ -979,7 +1092,6 @@
       const mirrorY = document.getElementById('mirrorY').checked;
       const rotDeg = parseInt(document.getElementById('rotation').value, 10) || 0;
       const rotRad = (rotDeg * Math.PI) / 180;
-      const segs = Math.max(8, parseInt(document.getElementById('curveSegs').value, 10) || 16);
       const ledgeType = document.getElementById('ledgeType').value;
       const ledgeHeight = parseFloat(document.getElementById('ledgeHeight').value) || 1.2;
       const clearance = parseFloat(document.getElementById('pcbClearance').value) || 0.2;
@@ -1003,16 +1115,14 @@
       lastStencilDims = { w: outerW, h: outerH };
 
       const plateShape = new THREE.Shape();
-      plateShape.moveTo(-outerW / 2, -outerH / 2);
-      plateShape.lineTo(outerW / 2, -outerH / 2);
-      plateShape.lineTo(outerW / 2, outerH / 2);
-      plateShape.lineTo(-outerW / 2, outerH / 2);
+      plateShape.moveTo(-outerW / 2, -outerH / 2); plateShape.lineTo(outerW / 2, -outerH / 2);
+      plateShape.lineTo(outerW / 2, outerH / 2); plateShape.lineTo(-outerW / 2, outerH / 2);
       plateShape.closePath();
 
       let smallestPad = Infinity, activeCount = 0;
 
       parsedPads.forEach((pad, index) => {
-        const res = padToGeometryData(pad, padComp, padScale, cx, cy, mirrorX, mirrorY, rotRad, segs);
+        const res = padToGeometryData(pad, padComp, padScale, cx, cy, mirrorX, mirrorY, rotRad);
         if (!res) return;
 
         const isExcluded = excludedPads.has(index);
@@ -1025,8 +1135,8 @@
         const hitMesh = new THREE.Mesh(
           new THREE.ShapeGeometry(res.shape),
           new THREE.MeshBasicMaterial({
-            color: isExcluded ? 0xf43f5e : 0x00e599,
-            transparent: true, opacity: isExcluded ? 0.8 : 0.08, side: THREE.DoubleSide
+            color: isExcluded ? 0xef4444 : 0x10b981,
+            transparent: true, opacity: isExcluded ? 0.8 : 0.07, side: THREE.DoubleSide
           })
         );
         hitMesh.position.z = thickness + 0.04;
@@ -1035,14 +1145,12 @@
       });
 
       stencilGroup.add(new THREE.Mesh(
-        new THREE.ExtrudeGeometry(plateShape, { depth: thickness, bevelEnabled: false, curveSegments: segs }),
-        new THREE.MeshStandardMaterial({ color: 0x00e599, roughness: 0.38, metalness: 0.18 })
+        new THREE.ExtrudeGeometry(plateShape, { depth: thickness, bevelEnabled: false, curveSegments: 16 }),
+        new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.42, metalness: 0.15 })
       ));
 
-      // Nakładka / Ramka
       const cutW = pcbW + clearance * 2, cutH = pcbH + clearance * 2;
-      const ledgeMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.42, metalness: 0.15 });
-
+      const ledgeMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.45, metalness: 0.12 });
       const addLedge = (shape) => {
         const g = new THREE.ExtrudeGeometry(shape, { depth: ledgeHeight, bevelEnabled: false });
         g.translate(0, 0, thickness);
@@ -1094,15 +1202,13 @@
       const bed = getBedSize();
       const bedOverflow = bed && (outerW > bed.w || outerH > bed.h);
       const minText = smallestPad === Infinity ? '-' : `${smallestPad.toFixed(2)} mm`;
-      const warnNozzle = smallestPad < currentNozzle * 1.1
-        ? `<div class="warn">⚠ ${dict.hudWarnNozzle} ${currentNozzle} mm (${minText})</div>` : '';
-      const warnBed = bedOverflow
-        ? `<div class="err">✖ ${dict.hudWarnBed} (${bed.w}×${bed.h} mm)</div>` : '';
+      const warnNozzle = smallestPad < currentNozzle * 1.1 ? `<div class="warn">⚠ ${dict.hudWarnNozzle} ${currentNozzle} mm (${minText})</div>` : '';
+      const warnBed = bedOverflow ? `<div class="err">✖ ${dict.hudWarnBed} (${bed.w}×${bed.h} mm)</div>` : '';
 
       document.getElementById('hud').innerHTML = `
         <div><b>${dict.hudPads}:</b> ${activeCount}/${parsedPads.length}  |  <b>${dict.hudMin}:</b> ${minText}</div>
         <div><b>PCB:</b> ${pcbW.toFixed(1)}×${pcbH.toFixed(1)} mm  |  <b>${dict.hudStencil}:</b> ${outerW.toFixed(1)}×${outerH.toFixed(1)} mm</div>
-        <div><b>${dict.hudThick}:</b> ${thickness.toFixed(2)} mm  |  <b>XY:</b> ${padComp >= 0 ? '+' : ''}${padComp.toFixed(3)} mm (${Math.round(padScale * 100)}%)</div>
+        <div><b>${dict.hudThick}:</b> ${thickness.toFixed(2)} mm  |  <b>XY:</b> ${padComp >= 0 ? '+' : ''}${padComp.toFixed(3)} mm</div>
         ${warnNozzle}${warnBed}
       `;
     }
@@ -1123,16 +1229,13 @@
       const hits = raycaster.intersectObjects(padHitGroup.children, false);
       if (hits.length > 0) {
         const idx = hits[0].object.userData.padIndex;
-        if (excludedPads.has(idx)) excludedPads.delete(idx);
-        else excludedPads.add(idx);
-        updateExcludedLabel();
-        rebuildStencil();
+        if (excludedPads.has(idx)) excludedPads.delete(idx); else excludedPads.add(idx);
+        updateExcludedLabel(); rebuildStencil();
       }
     });
-
     document.getElementById('btnResetExcluded').onclick = () => { excludedPads.clear(); updateExcludedLabel(); rebuildStencil(); };
 
-    // --- EKSPORT STL & .3MF BAMBU STUDIO ---
+    // --- EKSPORT STL & .3MF ---
     function exportGroupToBinarySTL(group) {
       group.updateMatrixWorld(true);
       const triangles = [];
@@ -1191,7 +1294,7 @@
 
       const modelXml = `<?xml version="1.0" encoding="UTF-8"?>
 <model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">
-  <metadata name="Application">SMD Stencil 3D Studio 2026</metadata>
+  <metadata name="Application">Stencil 3D Studio 2026</metadata>
   <resources><object id="1" type="model"><mesh><vertices>${vertices.join('')}</vertices><triangles>${triangles.join('')}</triangles></mesh></object></resources>
   <build><item objectid="1"/></build>
 </model>`;
@@ -1231,20 +1334,33 @@
       a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
     }
 
-    // --- PLIKI I DRAG & DROP ---
+    // --- OBSŁUGA PLIKÓW (GERBER + SVG) ---
     async function handleFiles(fileList) {
       for (const file of Array.from(fileList)) {
-        const name = file.name.toLowerCase(), res = parseGerber(await file.text());
+        const name = file.name.toLowerCase();
+        const text = await file.text();
+        const isSvg = name.endsWith('.svg') || text.trim().startsWith('<svg') || text.includes('<svg ');
+        const res = isSvg ? parseSVG(text) : parseGerber(text);
+
         const isEdge = name.includes('edge') || name.includes('outline') || name.includes('cut') || name.endsWith('.gm1') || name.endsWith('.gko');
-        if (isEdge) { parsedBoardBounds = res.bounds; loadedEdgeName = file.name; }
-        else { parsedPads = res.pads; excludedPads.clear(); loadedPasteName = file.name; updateExcludedLabel(); }
+        if (isEdge) {
+          parsedBoardBounds = res.bounds;
+          loadedEdgeName = file.name;
+        } else {
+          parsedPads = res.pads;
+          excludedPads.clear();
+          loadedPasteName = file.name;
+          updateExcludedLabel();
+        }
       }
-      updateFileStatus();
+      updateFileChips();
       rebuildStencil();
     }
 
-    document.getElementById('pasteFile').addEventListener('change', (e) => e.target.files?.length && handleFiles(e.target.files));
-    document.getElementById('edgeFile').addEventListener('change', (e) => e.target.files?.length && handleFiles(e.target.files));
+    const dropZone = document.getElementById('dropZone');
+    const multiFile = document.getElementById('multiFile');
+    dropZone.onclick = () => multiFile.click();
+    multiFile.addEventListener('change', (e) => e.target.files?.length && handleFiles(e.target.files));
 
     const dropOverlay = document.getElementById('drop-overlay');
     let dragCounter = 0;
@@ -1255,7 +1371,6 @@
       e.preventDefault(); dragCounter = 0; dropOverlay.classList.remove('show');
       if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
     });
-    document.getElementById('dropZone').onclick = () => document.getElementById('pasteFile').click();
 
     // --- DEMO & PRESETY ---
     document.getElementById('btnDemo').onclick = () => {
@@ -1272,10 +1387,8 @@
       ];
       excludedPads.clear();
       loadedPasteName = 'Demo_F_Paste.gbr';
-      loadedEdgeName = 'Demo_Edge_Cuts.gbr';
-      updateExcludedLabel();
-      updateFileStatus();
-      rebuildStencil();
+      loadedEdgeName = 'Demo_Edge_Cuts.svg';
+      updateExcludedLabel(); updateFileChips(); rebuildStencil();
     };
 
     const setNozzlePreset = (btnId, nozzle, thick, comp, margin) => {
@@ -1291,9 +1404,7 @@
     document.getElementById('preset04').onclick = () => setNozzlePreset('preset04', 0.4, 0.20, 0.08, 12);
     document.getElementById('presetThin').onclick = () => setNozzlePreset('presetThin', 0.2, 0.08, 0.04, 10);
 
-    ['mirrorX', 'mirrorY', 'rotation', 'curveSegs', 'ledgeType'].forEach(id => {
-      document.getElementById(id).addEventListener('input', rebuildStencil);
-    });
+    ['mirrorX', 'mirrorY', 'rotation', 'ledgeType'].forEach(id => document.getElementById(id).addEventListener('input', rebuildStencil));
     document.getElementById('bedPreset').addEventListener('change', () => { rebuildBed(); rebuildStencil(); });
 
     document.getElementById('btnExport3MF').onclick = () => {
@@ -1301,13 +1412,11 @@
       const m = document.getElementById('mirrorX').checked ? '_mirrorX' : '';
       exportBambu3MF(`stencil_Bambu_${currentNozzle}mm_T${t}_XY${c}${m}.3mf`);
     };
-
     document.getElementById('btnExportSTL').onclick = () => {
       const t = document.getElementById('thickness').value, c = document.getElementById('padComp').value;
       const m = document.getElementById('mirrorX').checked ? '_mirrorX' : '';
       downloadSTL(`stencil_T${t}_XY${c}${m}.stl`);
     };
-
     document.getElementById('btnExportPack').onclick = () => {
       if (parsedPads.length === 0) return alert(I18N[lang].alertNoData);
       const origComp = parseFloat(document.getElementById('padComp').value) || 0;
@@ -1322,14 +1431,13 @@
       });
     };
 
-    // Kamera
-    const setCam = (x, y, z) => { camera.position.set(x, y, z); controls.target.set(-15, 0, 0); };
-    document.getElementById('camTop').onclick = () => setCam(-15, 0, Math.max(lastStencilDims.w, lastStencilDims.h) * 1.9);
-    document.getElementById('camBottom').onclick = () => setCam(-15, 0, -Math.max(lastStencilDims.w, lastStencilDims.h) * 1.9);
-    document.getElementById('camIso').onclick = () => setCam(25, -110, 120);
+    const setCam = (x, y, z) => { camera.position.set(x, y, z); controls.target.set(0, 0, 0); };
+    document.getElementById('camTop').onclick = () => setCam(0, 0, Math.max(lastStencilDims.w, lastStencilDims.h) * 1.9);
+    document.getElementById('camBottom').onclick = () => setCam(0, 0, -Math.max(lastStencilDims.w, lastStencilDims.h) * 1.9);
+    document.getElementById('camIso').onclick = () => setCam(0, -100, 115);
     document.getElementById('camFit').onclick = () => {
-      const dist = Math.max(lastStencilDims.w, lastStencilDims.h) * 1.6;
-      setCam(dist * 0.2, -dist * 0.85, dist);
+      const d = Math.max(lastStencilDims.w, lastStencilDims.h) * 1.6;
+      setCam(0, -d * 0.85, d);
     };
 
     initSliders();
